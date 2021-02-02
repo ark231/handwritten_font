@@ -1,4 +1,5 @@
 #0x0001
+%small
 [alphabet,german,greek]
 #alphabet
 H U+0021 #'!'
