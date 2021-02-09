@@ -17,22 +17,22 @@ namespace handfont{
 		}
 		std::string line;
 		while(std::getline(chardef_file,line)){
-			if(line[0]=='#'||line.empty()){
+			if(line[0]=='#'||line.empty()){//if the line obviously seems to contain no data, then skip it!
 				continue;
 			}
 			std::string uncommented_line;
 			if(line.find("#",0)==std::string::npos){
-				uncommented_line=line;
+				uncommented_line=line;// the line doesn't contain any comment, so it is already "uncommented"
 			}else{
 				uncommented_line=line.substr(0,line.find("#",0));
 			}
-			bool there_is_keyvalue=false;
+			bool there_is_keyvalue=false;//initialization
 			std::string name="";
 			std::string raw_data="";
 			int place_dollar=uncommented_line.find("$");
 			if(place_dollar!=std::string::npos){//there is a key-value data
 				name=uncommented_line.substr(place_dollar+1,uncommented_line.find(" ",place_dollar)-place_dollar-1);
-				raw_data=uncommented_line.substr(uncommented_line.find("=",0)+2);
+				raw_data=uncommented_line.substr(uncommented_line.find("=",0)+2);//+2 means "= "
 				there_is_keyvalue=true;
 			}
 			if(there_is_keyvalue && uncommented_line.find("$")==0){//metadata 
@@ -90,7 +90,7 @@ namespace handfont{
 						break;
 				}
 				char_tmp.character=(Unicode)std::stoi(uncommented_line.substr(4),nullptr,16);
-				char_tmp.has_alternative=false;
+				char_tmp.has_alternative=false;//initialization and default value
 				if(there_is_keyvalue){
 					if(name=="Instead"){
 						char_tmp.has_alternative=true;
