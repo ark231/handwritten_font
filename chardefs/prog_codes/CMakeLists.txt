@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
-project(handfont_parse_chardef CXX)
+project(handfont_libs CXX)
 add_library(parse_chardef SHARED parse_chardef.cpp)
 target_compile_features(parse_chardef PUBLIC cxx_std_17)
+add_library(chardef_filemeta SHARED chardef_filemeta.cpp)
+target_compile_features(chardef_filemeta PUBLIC cxx_std_17)
