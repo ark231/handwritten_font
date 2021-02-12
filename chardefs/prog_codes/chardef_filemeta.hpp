@@ -8,6 +8,7 @@ namespace handfont{
 		font_type type;
 		UInt file_id;
 		std::string rootdir;
+		//filecode code;
 		void set_metadatas(grid_size,font_type,UInt,std::string);
 		public:
 		chardef_filemeta(filecode,std::string);
@@ -16,6 +17,7 @@ namespace handfont{
 		void set_metadatas(filecode,std::string);
 		std::string get_path();
 		std::string get_rootdir();
+		filecode get_filecode();
 	};
 }
 #endif

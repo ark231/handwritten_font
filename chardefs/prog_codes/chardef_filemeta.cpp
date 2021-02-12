@@ -76,4 +76,27 @@ namespace handfont{
 	std::string chardef_filemeta::get_rootdir(){
 		return rootdir;
 	}
+	filecode chardef_filemeta::get_filecode(){
+		filecode result="";
+		switch(this->size){
+			case grid_size::SMALL:
+				result+="S";
+				break;
+			case grid_size::LARGE:
+				result+="L";
+				break;
+		}
+		switch(this->type){
+			case font_type::MONO:
+				result+="M";
+				break;
+			case font_type::PROPORTIONAL:
+				result+="L";
+				break;
+		}
+		std::stringstream code_file_id;
+		code_file_id<<std::setw(4)<<std::setfill('0')<<std::hex<<file_id;
+		result+="_"+code_file_id.str();
+		return result;
+	}
 }
