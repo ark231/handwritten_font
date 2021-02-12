@@ -1,3 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 project(handfont CXX)
-add_subdirectory(chardefs)
+add_subdirectory(chardefs/prog_codes)
+add_subdirectory(input_PDF)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/handfont)
