@@ -8,7 +8,7 @@ namespace handfont{
 	};
 	enum class guide_type{
 		NONE,
-		FOUR,
+		LATIN,
 		CROSS
 	};
 	enum class char_width{

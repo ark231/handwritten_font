@@ -82,8 +82,8 @@ namespace handfont{
 					case 'n':
 						char_tmp.g_type = guide_type::NONE;
 						break;
-					case 'f':
-						char_tmp.g_type = guide_type::FOUR;
+					case 'l':
+						char_tmp.g_type = guide_type::LATIN;
 						break;
 					case 'c':
 						char_tmp.g_type = guide_type::CROSS;
