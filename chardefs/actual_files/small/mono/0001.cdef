@@ -2,6 +2,7 @@
 $Size = small
 $Type = Mono
 $Langs = [alphabet,german,greek]
+$Fonts = [Latin]
 #alphabet
 Hl U+0021 #'!'
 Hl U+0022 #'"'

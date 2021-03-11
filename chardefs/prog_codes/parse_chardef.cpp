@@ -9,12 +9,28 @@ namespace handfont{
 		filemeta=chardef_filemeta(code,rootdir);
 		this->character = character;
 	}
+	std::vector<std::string> parse_list(std::string input){
+		std::vector<std::string> result;
+		int endof_list;
+		if((endof_list=input.find("]",0))==std::string::npos){
+			throw std::runtime_error("error: list is not closed!");
+		}
+		std::string list_all_raw=input.substr(1,endof_list-1);
+		int start_val=0;
+		int place_comma;
+		while((place_comma=list_all_raw.find(",",start_val))!=std::string::npos){
+			result.push_back(list_all_raw.substr(start_val,place_comma-start_val));
+			start_val+=place_comma-start_val+1;
+		}
+		result.push_back(list_all_raw.substr(start_val));//there are no comma after the last value 
+		return result;
+	}
 	void chardef_data::parse_chardef(chardef_filemeta input_filemeta){
-		std::vector<character_info> *result = new std::vector<character_info>;
 		auto chardef_file = std::ifstream(input_filemeta.get_path());
 		if(chardef_file.fail()){
 			throw std::runtime_error("error: could not open chardef file: "+input_filemeta.get_path());
 		}
+		is_Fixed_Base = false;//initialization and default value
 		std::string line;
 		while(std::getline(chardef_file,line)){
 			if(line[0]=='#'||line.empty()){//if the line obviously seems to contain no data, then skip it!
@@ -37,18 +53,9 @@ namespace handfont{
 			}
 			if(there_is_keyvalue && uncommented_line.find("$")==0){//metadata 
 				if(name == "Langs"||name == "LANGS"){//character type list
-					int endof_list;
-					if((endof_list=raw_data.find("]",0))==std::string::npos){
-						throw std::runtime_error("error: character type list is not closed!");
-					}
-					std::string list_all_raw=raw_data.substr(1,endof_list-1);
-					int start_val=0;
-					int place_comma;
-					while((place_comma=list_all_raw.find(",",start_val))!=std::string::npos){
-						char_typenames.push_back(list_all_raw.substr(start_val,place_comma-start_val));
-						start_val+=place_comma-start_val+1;
-					}
-					char_typenames.push_back(list_all_raw.substr(start_val));//there are no comma after the last value 
+					char_typenames=parse_list(raw_data);
+				}else if(name == "Fonts"){
+					required_fontnames=parse_list(raw_data);
 				}else if(name == "Type"||name == "TYPE"){
 					if(raw_data=="Mono"){
 						f_type = font_type::MONO;
@@ -63,6 +70,8 @@ namespace handfont{
 					}else{
 						throw std::runtime_error("error: invalid grid size \""+uncommented_line+"\"");
 					}
+				}else if(name == "Fixed_Base" && raw_data.find("true")!=std::string::npos){
+					is_Fixed_Base = true;
 				}
 			}
 			if(uncommented_line[0]=='H'||uncommented_line[0]=='F'){//chardef line!!
@@ -83,6 +92,9 @@ namespace handfont{
 						char_tmp.g_type = guide_type::NONE;
 						break;
 					case 'l':
+						char_tmp.g_type = guide_type::LOWER_LATIN;
+						break;
+					case 'L':
 						char_tmp.g_type = guide_type::LATIN;
 						break;
 					case 'c':

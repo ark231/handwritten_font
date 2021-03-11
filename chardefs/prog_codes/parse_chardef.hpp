@@ -20,7 +20,9 @@ namespace handfont{
 	struct chardef_data{
 		grid_size size;
 		font_type f_type;
+		bool is_Fixed_Base;
 		std::vector<std::string> char_typenames;
+		std::vector<std::string> required_fontnames;
 		std::vector<character_info> char_infos;
 		void parse_chardef(chardef_filemeta);
 	};
