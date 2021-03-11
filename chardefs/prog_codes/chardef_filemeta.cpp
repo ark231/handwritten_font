@@ -91,7 +91,7 @@ namespace handfont{
 				result+="M";
 				break;
 			case font_type::PROPORTIONAL:
-				result+="L";
+				result+="P";
 				break;
 		}
 		std::stringstream code_file_id;
