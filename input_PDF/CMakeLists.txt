@@ -4,6 +4,7 @@ find_package(Boost 1.71 COMPONENTS program_options REQUIRED )
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(QRencode libqrencode REQUIRED)
 find_library(HPDF libhpdf.so)
+find_package(ICU 61.0 COMPONENTS uc REQUIRED)
 
 add_executable(gen_input_pdf generator.cpp input_pdf_generator.cpp)
 target_include_directories(gen_input_pdf PUBLIC ${Boost_INCLUDE_DIR} )
@@ -12,6 +13,7 @@ target_link_libraries(gen_input_pdf LINK_PUBLIC ${Boost_LIBRARIES} )
 target_link_libraries(gen_input_pdf PUBLIC parse_chardef chardef_filemeta)
 target_link_libraries(gen_input_pdf PUBLIC ${QRencode_LINK_LIBRARIES})
 target_link_libraries(gen_input_pdf PUBLIC ${HPDF})
+target_link_libraries(gen_input_pdf PUBLIC ${ICU_LIBRARIES})
 target_compile_options(gen_input_pdf PUBLIC $<IF:$<CONFIG:Debug>,-g3 -O0,>)
 
 ##for debugging

@@ -13,8 +13,10 @@ namespace handfont{
 		std::string font_name;
 		std::map<std::string,HPDF_Image> qr_codes;
 		HPDF_Image generate_qr_code(const char*);
-		void draw_write_grid(HPDF_Page&,grid_size,char_width,guide_type,px,px);
+		mm draw_write_grid(HPDF_Page&,grid_size,char_width,guide_type,bool,px,px);
+		std::map<std::string,HPDF_Font> using_fonts;//almost useless because I dont want to think how to switch fonts in cdef file
 		void draw_info_grid(HPDF_Page&,grid_size,char_width,px,px,Unicode);
+		void draw_grid_set(HPDF_Page&,grid_size,character_info,bool,px,px);
 		public:
 		input_pdf_generator(const std::string);
 		void add_page(chardef_filemeta);
