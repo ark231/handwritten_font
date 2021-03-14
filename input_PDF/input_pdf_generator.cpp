@@ -153,6 +153,7 @@ namespace handfont{
 			if(using_fonts.find(data.required_fontnames[i])==using_fonts.end()){
 				std::string fontfilename=data.required_fontnames[i]+".ttf";
 				auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_TRUE);
+				//auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_FALSE);//failed (tofu!)
 				using_fonts[data.required_fontnames[i]] = HPDF_GetFont(pdf,font_name,"UTF-8");
 			}
 			HPDF_SetCurrentEncoder(pdf,"UTF-8");
@@ -192,7 +193,9 @@ namespace handfont{
 					current_BL_x=(current_internal_id%num_internal_cols::LARGE)*(height_grid::LARGE/2.0);
 					break;
 			}
-			draw_grid_set(current_page,data.size,current_char,data.is_Fixed_Base,mm_to_px(current_BL_x),mm_to_px(current_BL_y));
+			px garea_x_offset = (HPDF_Page_GetWidth(current_page)-mm_to_px(width_grids_area))/2.0;
+			px garea_y_offset = (HPDF_Page_GetHeight(current_page)-mm_to_px(height_grids_area))/2.0;
+			draw_grid_set(current_page,data.size,current_char,data.is_Fixed_Base,garea_x_offset+mm_to_px(current_BL_x),garea_y_offset+mm_to_px(current_BL_y));
 			if(current_char.width == char_width::HALF){
 				current_internal_id+=1;
 			}else{
