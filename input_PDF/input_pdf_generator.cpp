@@ -5,7 +5,8 @@
 #include<cmath>
 #include"input_pdf_generator.hpp"
 #include"input_pdf_consts.hpp"
-#include"parse_chardef.hpp"
+#include"chardef/parse_chardef.hpp"
+#include"general/helpers.hpp"
 namespace handfont{
 	px constexpr mm_to_px(mm input_mm){
 		return (input_mm*dpi)/mm_per_inch;

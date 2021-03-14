@@ -5,8 +5,8 @@
 #include<map>
 #include<vector>
 #include<filesystem>
-#include"parse_chardef.hpp"
-#include"chardef_filemeta.hpp"
+#include"chardef/parse_chardef.hpp"
+#include"chardef/chardef_filemeta.hpp"
 #include"input_pdf_generator.hpp"
 #include"input_pdf_consts.hpp"
 int main(int argc,char *argv[]){

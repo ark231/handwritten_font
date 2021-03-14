@@ -1,10 +1,11 @@
 #include<stdexcept>
 #include<string>
 #include<filesystem>
-#include<sstream>
-#include<iomanip>
+//#include<sstream>
+//#include<iomanip>
 
 #include"chardef_filemeta.hpp"
+#include"general/helpers.hpp"
 namespace stdfsys=std::filesystem;
 namespace handfont{
 	void chardef_filemeta::set_metadatas(grid_size size,font_type type,UInt id,std::string rootdir){
@@ -67,9 +68,11 @@ namespace handfont{
 				dirpath_type=stdfsys::path("proportional");
 				break;
 		}
+		/*
 		std::stringstream filename;
 		filename<<std::setw(4)<<std::setfill('0')<<std::hex<<file_id;
-		filename_path = stdfsys::path(filename.str()+".cdef");
+		*/
+		filename_path = stdfsys::path(to_hex(file_id,4,'0')+".cdef");
 		stdfsys::path result = stdfsys::path(rootdir)/dirpath_size/dirpath_type/filename_path;
 		return result.native();
 	}

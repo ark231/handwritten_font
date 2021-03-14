@@ -4,7 +4,7 @@
 #include<vector>
 #include<string>
 #include<map>
-#include"parse_chardef.hpp"
+#include"chardef/parse_chardef.hpp"
 #include"input_pdf_consts.hpp"
 namespace handfont{
 	class input_pdf_generator{
