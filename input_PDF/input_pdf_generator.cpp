@@ -109,6 +109,14 @@ namespace handfont{
 		//HPDF_Page_TextRect(current_page,BL_x,BL_y+grid_height,BL_x+grid_width,BL_y,str.c_str(),HPDF_TALIGN_CENTER,nullptr);
 		HPDF_Page_TextOut(current_page,BL_x,BL_y+mm_to_px(font_size/5.0)+1,str.c_str());
 		HPDF_Page_EndText(current_page);
+		/*alternative unicode text*/
+		HPDF_Page_GSave(current_page);
+		HPDF_Page_BeginText(current_page);
+		HPDF_Page_SetFontAndSize(current_page,using_fonts[current_using_fontname],mm_to_px(font_size_alter));
+		HPDF_Page_TextOut(current_page,BL_x,BL_y+grid_height-mm_to_px(font_size_alter),to_hex((int)character).c_str());
+		HPDF_Page_EndText(current_page);
+		HPDF_Page_GRestore(current_page);
+		/*end alternative unicode text*/
 	}
 	void input_pdf_generator::draw_grid_set(HPDF_Page& current_page,grid_size size,character_info current_char,bool is_Fixed_Based,px BL_x,px BL_y){
 		mm info_y_offset=draw_write_grid(current_page,size,current_char.width,current_char.g_type,is_Fixed_Based,BL_x,BL_y);
@@ -175,6 +183,7 @@ namespace handfont{
 			}
 			HPDF_SetCurrentEncoder(pdf,"UTF-8");
 			HPDF_Page_SetFontAndSize(current_page,using_fonts[data.required_fontnames[0]],mm_to_px(font_size));
+			current_using_fontname=data.required_fontnames[0];
 		}
 		HPDF_Page_GSave(current_page);
 		int current_internal_id=0;

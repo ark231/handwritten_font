@@ -15,6 +15,7 @@ namespace handfont{
 		HPDF_Image generate_qr_code(const char*);
 		mm draw_write_grid(HPDF_Page&,grid_size,char_width,guide_type,bool,px,px);
 		std::map<std::string,HPDF_Font> using_fonts;//almost useless because I dont want to think how to switch fonts in cdef file
+		std::string current_using_fontname;
 		void draw_info_grid(HPDF_Page&,grid_size,char_width,px,px,Unicode);
 		void draw_grid_set(HPDF_Page&,grid_size,character_info,bool,px,px);
 		public:

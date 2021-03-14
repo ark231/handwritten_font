@@ -16,5 +16,6 @@ namespace handfont{
 	mm constexpr height_grids_area = height_grid::SMALL*30;
 	mm constexpr width_grids_area = height_grid::SMALL*24;
 	mm constexpr font_size = 5.0;
+	mm constexpr font_size_alter = 1.0;
 }
 #endif
