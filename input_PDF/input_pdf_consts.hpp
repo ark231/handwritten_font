@@ -17,5 +17,13 @@ namespace handfont{
 	mm constexpr width_grids_area = height_grid::SMALL*24;
 	mm constexpr font_size = 5.0;
 	mm constexpr font_size_alter = 1.0;
+	mm constexpr marker_width_mm = 5.0;
+	mm constexpr marker_length_mm = 14.0;
+	enum class corner_rotation{
+		BL = 0,
+		BR,
+		TR,
+		TL
+	};
 }
 #endif

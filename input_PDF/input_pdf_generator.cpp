@@ -15,7 +15,8 @@ namespace handfont{
 	{
 		throw std::runtime_error("ERROR: error_no="+std::to_string((unsigned int)error_no)+", detail_no="+std::to_string((int)detail_no)); /* throw exception on error */
 	}
-	mm input_pdf_generator::draw_write_grid(HPDF_Page& current_page,grid_size size,char_width width,guide_type type,bool is_Fixed_Based,px BL_x,px BL_y){
+
+	mm input_pdf_generator::draw_write_grid(grid_size size,char_width width,guide_type type,bool is_Fixed_Based,px BL_x,px BL_y){
 		px grid_height;
 		mm result_height;
 		px grid_width;
@@ -78,7 +79,8 @@ namespace handfont{
 		HPDF_Page_GRestore(current_page);
 		return result_height;
 	}
-	void input_pdf_generator::draw_info_grid(HPDF_Page& current_page,grid_size size,char_width width,px BL_x,px BL_y,Unicode character){
+
+	void input_pdf_generator::draw_info_grid(grid_size size,char_width width,px BL_x,px BL_y,Unicode character){
 		px grid_height=mm_to_px(height_grid::SMALL);
 		px grid_width;
 		switch(size){
@@ -118,10 +120,12 @@ namespace handfont{
 		HPDF_Page_GRestore(current_page);
 		/*end alternative unicode text*/
 	}
-	void input_pdf_generator::draw_grid_set(HPDF_Page& current_page,grid_size size,character_info current_char,bool is_Fixed_Based,px BL_x,px BL_y){
-		mm info_y_offset=draw_write_grid(current_page,size,current_char.width,current_char.g_type,is_Fixed_Based,BL_x,BL_y);
-		draw_info_grid(current_page,size,current_char.width,BL_x,BL_y+mm_to_px(info_y_offset),current_char.character);
+
+	void input_pdf_generator::draw_grid_set(grid_size size,character_info current_char,bool is_Fixed_Based,px BL_x,px BL_y){
+		mm info_y_offset=draw_write_grid(size,current_char.width,current_char.g_type,is_Fixed_Based,BL_x,BL_y);
+		draw_info_grid(size,current_char.width,BL_x,BL_y+mm_to_px(info_y_offset),current_char.character);
 	}
+
 	HPDF_Image input_pdf_generator::generate_qr_code(const char* data){
 		QRcode* qr_code;
 		qr_code = QRcode_encodeString(data,0,QR_ECLEVEL_M,QR_MODE_8,1);
@@ -140,6 +144,24 @@ namespace handfont{
 		}
 		return result;
 	}
+
+	void input_pdf_generator::draw_corner_marker(px start_x,px start_y,corner_rotation rotate){
+		double rotation = -M_PI_2*(int)rotate;//counterclockwise
+		px width = mm_to_px(marker_width_mm);
+		px length = mm_to_px(marker_length_mm);
+		HPDF_Page_GSave(current_page);
+		HPDF_Page_Concat(current_page,cos(rotation),-sin(rotation),sin(rotation),cos(rotation),start_x,start_y);
+		HPDF_Page_MoveTo(current_page,0.0,0.0);
+		HPDF_Page_LineTo(current_page,length,0.0);
+		HPDF_Page_LineTo(current_page,length,-width);
+		HPDF_Page_LineTo(current_page,-width,-width);
+		HPDF_Page_LineTo(current_page,-width,length);
+		HPDF_Page_LineTo(current_page,0.0,length);
+		HPDF_Page_LineTo(current_page,0.0,0.0);
+		HPDF_Page_Fill(current_page);
+		HPDF_Page_GRestore(current_page);
+	}
+
 	input_pdf_generator::input_pdf_generator(const std::string fontname){
 		pdf = HPDF_New(error_handler,nullptr);
 		if(!pdf){
@@ -151,9 +173,11 @@ namespace handfont{
 			qr_codes[qr_places[i]] = generate_qr_code(qr_places[i].c_str());
 		}
 	}
+
 	void input_pdf_generator::add_page(chardef_filemeta filemeta){
 		HPDF_Page current_page = HPDF_AddPage(pdf);
 		pages.push_back(current_page);
+		this->current_page = current_page;
 		HPDF_Page_SetSize(current_page, HPDF_PAGE_SIZE_A4,HPDF_PAGE_PORTRAIT);
 		chardef_data data;
 		data.parse_chardef(filemeta);
@@ -190,7 +214,13 @@ namespace handfont{
 		mm current_BL_x=0.0;
 		mm current_BL_y=0.0;
 		px height_current_grid=0.0;
-		HPDF_Page_Concat(current_page,1,0,0,1,10.0,10.0);
+		px garea_x_offset = (page_width-mm_to_px(width_grids_area))/2.0;
+		px garea_y_offset = (page_height-mm_to_px(height_grids_area))/2.0;
+		draw_corner_marker(0.0+garea_x_offset,garea_y_offset,corner_rotation::BL);
+		draw_corner_marker(mm_to_px(width_grids_area)+garea_x_offset,garea_y_offset,corner_rotation::BR);
+		draw_corner_marker(mm_to_px(width_grids_area)+garea_x_offset,mm_to_px(height_grids_area)+garea_y_offset,corner_rotation::TR);
+		draw_corner_marker(0.0+garea_x_offset,mm_to_px(height_grids_area)+garea_y_offset,corner_rotation::TL);
+		//HPDF_Page_Concat(current_page,1,0,0,1,10.0,10.0);
 		for(character_info current_char:data.char_infos){
 			if(current_char.width == char_width::FULL 
 					&& ((data.size == grid_size::SMALL && current_internal_id%num_internal_cols::SMALL == num_internal_cols::SMALL-1)
@@ -219,9 +249,7 @@ namespace handfont{
 					current_BL_x=(current_internal_id%num_internal_cols::LARGE)*(height_grid::LARGE/2.0);
 					break;
 			}
-			px garea_x_offset = (HPDF_Page_GetWidth(current_page)-mm_to_px(width_grids_area))/2.0;
-			px garea_y_offset = (HPDF_Page_GetHeight(current_page)-mm_to_px(height_grids_area))/2.0;
-			draw_grid_set(current_page,data.size,current_char,data.is_Fixed_Base,garea_x_offset+mm_to_px(current_BL_x),garea_y_offset+mm_to_px(current_BL_y));
+			draw_grid_set(data.size,current_char,data.is_Fixed_Base,garea_x_offset+mm_to_px(current_BL_x),garea_y_offset+mm_to_px(current_BL_y));
 			if(current_char.width == char_width::HALF){
 				current_internal_id+=1;
 			}else{
@@ -234,9 +262,11 @@ namespace handfont{
 		*/
 		HPDF_Page_GRestore(current_page);
 	}
+
 	void input_pdf_generator::saveto_file(const std::string filename){
 		HPDF_SaveToFile(pdf,filename.c_str());
 	}
+
 	input_pdf_generator::~input_pdf_generator(){
 		HPDF_Free(pdf);
 	}

@@ -10,14 +10,18 @@ namespace handfont{
 	class input_pdf_generator{
 		HPDF_Doc pdf;
 		std::vector<HPDF_Page> pages;
+		HPDF_Page current_page;
 		std::string font_name;
 		std::map<std::string,HPDF_Image> qr_codes;
-		HPDF_Image generate_qr_code(const char*);
-		mm draw_write_grid(HPDF_Page&,grid_size,char_width,guide_type,bool,px,px);
 		std::map<std::string,HPDF_Font> using_fonts;//almost useless because I dont want to think how to switch fonts in cdef file
 		std::string current_using_fontname;
-		void draw_info_grid(HPDF_Page&,grid_size,char_width,px,px,Unicode);
-		void draw_grid_set(HPDF_Page&,grid_size,character_info,bool,px,px);
+
+		HPDF_Image generate_qr_code(const char*);
+		mm draw_write_grid(grid_size,char_width,guide_type,bool,px,px);
+		void draw_info_grid(grid_size,char_width,px,px,Unicode);
+		void draw_grid_set(grid_size,character_info,bool,px,px);
+		void draw_corner_marker(px,px,corner_rotation);
+
 		public:
 		input_pdf_generator(const std::string);
 		void add_page(chardef_filemeta);
