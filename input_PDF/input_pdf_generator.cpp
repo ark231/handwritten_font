@@ -7,7 +7,7 @@
 #include"input_pdf_consts.hpp"
 #include"parse_chardef.hpp"
 namespace handfont{
-	px mm_to_px(mm input_mm){
+	px constexpr mm_to_px(mm input_mm){
 		return (input_mm*dpi)/mm_per_inch;
 	}
 	void error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data)
@@ -126,17 +126,20 @@ namespace handfont{
 			pixels[l] = (~qr_code->data[l]&0x01)*0xff;
 		}
 		result = HPDF_LoadRawImageFromMem(pdf,pixels,width,width,HPDF_CS_DEVICE_GRAY,8);
+		if(result == nullptr){
+			throw std::runtime_error("error: failed to load qrcode to pdf image!");
+		}
 		return result;
 	}
 	input_pdf_generator::input_pdf_generator(const std::string fontname){
+		pdf = HPDF_New(error_handler,nullptr);
+		if(!pdf){
+			throw std::runtime_error("error: failed to create pdf document!");
+		}
 		font_name=fontname;
 		std::string qr_places[] = {"TL","TR","BL","BR"};
 		for(int i = 1;i<4;i++){
 			qr_codes[qr_places[i]] = generate_qr_code(qr_places[i].c_str());
-		}
-		pdf = HPDF_New(error_handler,nullptr);
-		if(!pdf){
-			throw std::runtime_error("error: failed to create pdf document!");
 		}
 	}
 	void input_pdf_generator::add_page(chardef_filemeta filemeta){
@@ -148,6 +151,19 @@ namespace handfont{
 		std::string qr_info_tmp="";
 		qr_info_tmp = "TL_Handfont_"+filemeta.get_filecode()+"_"+font_name;
 		qr_codes["TL"]= generate_qr_code(qr_info_tmp.c_str());
+		px constexpr qr_offset=mm_to_px(5.0);
+		//px constexpr qr_size=mm_to_px(20.0);
+		//px constexpr qr_size_TL=mm_to_px(40.0);
+		px qr_size = mm_to_px((mm)HPDF_Image_GetWidth(qr_codes["BR"]));
+		px qr_size_TL = mm_to_px((mm)HPDF_Image_GetWidth(qr_codes["TL"]));
+		px page_width = HPDF_Page_GetWidth(current_page);
+		px page_height= HPDF_Page_GetHeight(current_page);
+		
+		HPDF_Page_DrawImage(current_page,qr_codes["BL"],qr_offset,qr_offset,qr_size,qr_size);
+		HPDF_Page_DrawImage(current_page,qr_codes["BR"],page_width-qr_offset-qr_size,qr_offset,qr_size,qr_size);
+		HPDF_Page_DrawImage(current_page,qr_codes["TR"],page_width-qr_offset-qr_size,page_height-qr_offset-qr_size,qr_size,qr_size);
+		HPDF_Page_DrawImage(current_page,qr_codes["TL"],qr_offset,page_height-qr_offset-qr_size_TL,qr_size_TL,qr_size_TL);
+
 		HPDF_UseUTFEncodings(pdf);
 		for(int i =0;i<data.required_fontnames.size();i++){
 			if(using_fonts.find(data.required_fontnames[i])==using_fonts.end()){
