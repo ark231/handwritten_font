@@ -35,9 +35,10 @@ namespace handfont{
 		std::vector<int> result;
 		std::smatch smatch;
 		for(const auto& filename : stdfsys::directory_iterator(chardef_dirorder(rootdir,size,type))){
-			if(std::regex_search(filename.path().native(),smatch,std::regex("^[0-9a-f]+\\.cdef"))){
+			if(std::regex_search(filename.path().native(),smatch,std::regex("/[0-9a-f]+\\.cdef"))){
 				std::smatch raw_file_id;
-				std::regex_search(filename.path().native(),raw_file_id,std::regex("[0-9a-f]+"));
+				auto found_filename = smatch.str();
+				std::regex_search(found_filename,raw_file_id,std::regex("[0-9a-f]+"));
 				auto file_id = std::stoi(raw_file_id.str(),nullptr,16);
 				result.push_back(file_id);
 			}
@@ -48,14 +49,14 @@ namespace handfont{
 		grid_size size_enum;
 		font_type type_enum;
 		if(size == "small"){
-			size_enum == grid_size::SMALL;
+			size_enum = grid_size::SMALL;
 		}else if(size == "large"){
-			size_enum == grid_size::LARGE;
+			size_enum = grid_size::LARGE;
 		}
 		if(type == "mono"){
-			type_enum == font_type::MONO;
+			type_enum = font_type::MONO;
 		}else if(size == "proportional"){
-			type_enum == font_type::PROPORTIONAL;
+			type_enum = font_type::PROPORTIONAL;
 		}
 		return search_available_files(rootdir,size_enum,type_enum);
 	}
