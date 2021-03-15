@@ -1,8 +1,11 @@
 #ifndef HANDFONT_CHARDEF_FILEMETA
 #define HANDFONT_CHARDEF_FILEMETA
 #include<string>
+#include<vector>
 #include"chardef_consts.hpp"
 namespace handfont{
+	std::vector<int> search_available_files(std::string,grid_size,font_type);
+	std::vector<int> search_available_files(std::string,std::string,std::string);
 	class chardef_filemeta{
 		grid_size size;
 		font_type type;
