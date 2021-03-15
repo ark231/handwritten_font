@@ -1,0 +1,10 @@
+fontname = "testfont"
+fonttype = "both" #or "mono" ,"proportional"
+gridsize = "small" #or "large", "both"
+[chardefs.small.mono]
+set = "all"
+[chardefs.small.proportional]
+set = "custom"
+[[chardefs.small.proportional.id_groups]]
+begin = 0x0001
+end = 0x0002
