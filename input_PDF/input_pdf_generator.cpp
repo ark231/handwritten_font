@@ -13,7 +13,7 @@ namespace handfont{
 	}
 	void error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data)
 	{
-		throw std::runtime_error("ERROR: error_no="+std::to_string((unsigned int)error_no)+", detail_no="+std::to_string((int)detail_no)); /* throw exception on error */
+		throw std::runtime_error("ERROR: error_no=0x"+to_hex((unsigned int)error_no)+", detail_no=0x"+to_hex((int)detail_no)); /* throw exception on error */
 	}
 
 	mm input_pdf_generator::draw_write_grid(grid_size size,char_width width,guide_type type,bool is_Fixed_Based,px BL_x,px BL_y){
