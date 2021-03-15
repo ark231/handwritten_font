@@ -122,9 +122,9 @@ std::vector<int> parse_ranges(toml::value project_data,std::string file_rootdir,
 	return result;
 }
 
-void add_pages(handfont::input_pdf_generator& result,std::vector<int> file_ids,handfont::filecode input_code,std::string file_rootdir){
+void add_pages(handfont::input_pdf_generator& result,std::vector<int> file_ids,handfont::filecode code_head,std::string file_rootdir){
 	for(const auto& file_id : file_ids){
-		input_code+="_"+handfont::to_hex(file_id,4,'0');
+		auto input_code = code_head+"_"+handfont::to_hex(file_id,4,'0');
 		handfont::chardef_filemeta input_filemeta(input_code,file_rootdir);
 		result.add_page(input_filemeta);
 	}
