@@ -109,7 +109,9 @@ namespace handfont{
 		unistr.toUTF8String(str);
 		HPDF_Page_BeginText(current_page);
 		//HPDF_Page_TextRect(current_page,BL_x,BL_y+grid_height,BL_x+grid_width,BL_y,str.c_str(),HPDF_TALIGN_CENTER,nullptr);
-		HPDF_Page_TextOut(current_page,BL_x,BL_y+mm_to_px(font_size/5.0)+1,str.c_str());
+		auto char_width = HPDF_Font_GetUnicodeWidth(using_fonts[current_using_fontname],character)*(mm_to_px(font_size)/1000.0);
+		auto char_xoffset = (grid_width-char_width)/2.0;
+		HPDF_Page_TextOut(current_page,BL_x+char_xoffset,BL_y+mm_to_px(font_size/5.0)+1,str.c_str());
 		HPDF_Page_EndText(current_page);
 		/*alternative unicode text*/
 		HPDF_Page_GSave(current_page);
