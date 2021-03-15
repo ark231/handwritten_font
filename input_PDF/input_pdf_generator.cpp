@@ -169,6 +169,8 @@ namespace handfont{
 		if(!pdf){
 			throw std::runtime_error("error: failed to create pdf document!");
 		}
+		HPDF_UseUTFEncodings(pdf);
+		HPDF_SetCurrentEncoder(pdf,"UTF-8");
 		font_name=fontname;
 		std::string qr_places[] = {"TL","TR","BL","BR"};
 		for(int i = 1;i<4;i++){
@@ -199,7 +201,6 @@ namespace handfont{
 		HPDF_Page_DrawImage(current_page,qr_codes["TR"],page_width-qr_offset-qr_size,page_height-qr_offset-qr_size,qr_size,qr_size);
 		HPDF_Page_DrawImage(current_page,qr_codes["TL"],qr_offset,page_height-qr_offset-qr_size_TL,qr_size_TL,qr_size_TL);
 
-		HPDF_UseUTFEncodings(pdf);
 		for(int i =0;i<data.required_fontnames.size();i++){
 			if(using_fonts.find(data.required_fontnames[i])==using_fonts.end()){
 				std::string fontfilename=data.required_fontnames[i]+".ttf";
@@ -207,7 +208,6 @@ namespace handfont{
 				//auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_FALSE);//failed (tofu!)
 				using_fonts[data.required_fontnames[i]] = HPDF_GetFont(pdf,font_name,"UTF-8");
 			}
-			HPDF_SetCurrentEncoder(pdf,"UTF-8");
 			HPDF_Page_SetFontAndSize(current_page,using_fonts[data.required_fontnames[0]],mm_to_px(font_size));
 			current_using_fontname=data.required_fontnames[0];
 		}
