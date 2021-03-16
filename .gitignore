@@ -34,3 +34,6 @@
 #vim swapfile
 *.swp
 
+#tmp things
+*tmp*
+/*tmp*/
