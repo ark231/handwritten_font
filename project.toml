@@ -1,4 +1,4 @@
-fontname = "testfont"
+fontname = "exsamplefont"
 fonttype = "both" #or "mono" ,"proportional"
 gridsize = "small" #or "large", "both"
 [chardefs.small.mono]
