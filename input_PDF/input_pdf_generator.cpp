@@ -118,7 +118,7 @@ namespace handfont{
 		HPDF_Page_GSave(current_page);
 		HPDF_Page_BeginText(current_page);
 		HPDF_Page_SetFontAndSize(current_page,using_fonts[current_using_fontname],mm_to_px(font_size_alter));
-		HPDF_Page_TextOut(current_page,BL_x,BL_y+grid_height-mm_to_px(font_size_alter),to_hex((int)character).c_str());
+		HPDF_Page_TextOut(current_page,BL_x,BL_y+grid_height-mm_to_px(font_size_alter),("U+"+to_hex((int)character)).c_str());
 		HPDF_Page_EndText(current_page);
 		HPDF_Page_GRestore(current_page);
 		/*end alternative unicode text*/
