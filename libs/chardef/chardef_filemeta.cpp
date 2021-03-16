@@ -12,22 +12,8 @@ namespace stdfsys=std::filesystem;
 namespace handfont{
 	stdfsys::path chardef_dirorder(std::string rootdir,grid_size size,font_type type){
 		stdfsys::path dirpath_size,dirpath_type,filename_path;
-		switch(size){
-			case grid_size::SMALL:
-				dirpath_size=stdfsys::path("small");
-				break;
-			case grid_size::LARGE:
-				dirpath_size=stdfsys::path("large");
-				break;
-		}
-		switch(type){
-			case font_type::MONO:
-				dirpath_type=stdfsys::path("mono");
-				break;
-			case font_type::PROPORTIONAL:
-				dirpath_type=stdfsys::path("proportional");
-				break;
-		}
+		dirpath_size=stdfsys::path(to_string(size));
+		dirpath_type=stdfsys::path(to_string(type));
 		return stdfsys::path(rootdir)/dirpath_size/dirpath_type;
 	}
 
@@ -46,19 +32,7 @@ namespace handfont{
 		return result;
 	}
 	std::vector<int> search_available_files(std::string rootdir,std::string size,std::string type){
-		grid_size size_enum;
-		font_type type_enum;
-		if(size == "small"){
-			size_enum = grid_size::SMALL;
-		}else if(size == "large"){
-			size_enum = grid_size::LARGE;
-		}
-		if(type == "mono"){
-			type_enum = font_type::MONO;
-		}else if(size == "proportional"){
-			type_enum = font_type::PROPORTIONAL;
-		}
-		return search_available_files(rootdir,size_enum,type_enum);
+		return search_available_files(rootdir,to_grid_size(size),to_font_type(type));
 	}
 
 	void chardef_filemeta::set_metadatas(grid_size size,font_type type,UInt id,std::string rootdir){
