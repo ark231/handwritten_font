@@ -1,9 +1,9 @@
 #0009
 $Size = small
 $Type = Mono
-$Langs = [jinmeiyou_kanji]
+$Langs = [人名用漢字]
 $Fonts = [Japanese]
-#jinmeiyou_kanji
+#人名用漢字
 Fc U+4E11 #'丑'
 Fc U+4E1E #'丞'
 Fc U+4E43 #'乃'

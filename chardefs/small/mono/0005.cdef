@@ -1,9 +1,9 @@
 #0005
 $Size = small
 $Type = Mono
-$Langs = [jouyou_kanji]
+$Langs = [常用漢字]
 $Fonts = [Japanese]
-#jouyou_kanji
+#常用漢字
 Fc U+7F6A #'罪'
 Fc U+5D0E #'崎'
 Fc U+4F5C #'作'

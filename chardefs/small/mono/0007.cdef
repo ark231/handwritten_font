@@ -1,9 +1,9 @@
 #0007
 $Size = small
 $Type = Mono
-$Langs = [jouyou_kanji]
+$Langs = [常用漢字]
 $Fonts = [Japanese]
-#jouyou_kanji
+#常用漢字
 Fc U+5B9A #'定'
 Fc U+5E95 #'底'
 Fc U+62B5 #'抵'

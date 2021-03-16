@@ -1,7 +1,7 @@
 #0002
 $Size = small
 $Type = Mono
-$Langs = [hiragana,katakana]
+$Langs = [ひらがな,カタカナ]
 $Fonts = [Japanese]
 #hiragana
 Fc U+3041 #'ぁ'

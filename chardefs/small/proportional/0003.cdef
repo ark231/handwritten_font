@@ -1,9 +1,9 @@
 #0003
 $Size = small
 $Type = Proportional
-$Langs = [jouyou_kanji]
+$Langs = [常用漢字]
 $Fonts = [Japanese]
-#jouyou_kanji
+#常用漢字
 Fc U+4E9C #'亜'
 Fc U+54C0 #'哀'
 Fc U+6328 #'挨'
