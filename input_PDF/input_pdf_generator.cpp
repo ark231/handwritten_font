@@ -3,6 +3,7 @@
 #include<string>
 #include<unicode/unistr.h>
 #include<cmath>
+#include<iostream>
 #include"input_pdf_generator.hpp"
 #include"input_pdf_consts.hpp"
 #include"chardef/parse_chardef.hpp"
@@ -208,9 +209,10 @@ namespace handfont{
 				//auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_FALSE);//failed (tofu!)
 				using_fonts[data.required_fontnames[i]] = HPDF_GetFont(pdf,font_name,"UTF-8");
 			}
-			HPDF_Page_SetFontAndSize(current_page,using_fonts[data.required_fontnames[0]],mm_to_px(font_size));
-			current_using_fontname=data.required_fontnames[0];
 		}
+		HPDF_Page_SetFontAndSize(current_page,using_fonts[data.required_fontnames[0]],mm_to_px(font_size));
+		current_using_fontname=data.required_fontnames[0];
+
 		HPDF_Page_GSave(current_page);
 		int current_internal_id=0;
 		mm current_BL_x=0.0;
@@ -218,6 +220,29 @@ namespace handfont{
 		px height_current_grid=0.0;
 		px garea_x_offset = (page_width-mm_to_px(width_grids_area))/2.0;
 		px garea_y_offset = (page_height-mm_to_px(height_grids_area))/2.0;
+
+		px title_x_offset = garea_x_offset+mm_to_px(height_grid::SMALL*3);
+		px title_y_offset = page_height-garea_x_offset+mm_to_px(height_grid::SMALL);
+		//auto title = font_name+"\n"+to_string(data.f_type)+"\n";
+		std::string char_typenames;
+		for(const auto& char_typename : data.char_typenames){
+			char_typenames += char_typename+" ";
+		}
+		if(char_typenames.back() == ' '){
+			char_typenames.pop_back();
+		}
+		HPDF_Page_BeginText(current_page);
+		mm ascent = font_size*(HPDF_Font_GetAscent(using_fonts[current_using_fontname])/1000.0);
+		mm descent = font_size*(HPDF_Font_GetDescent(using_fonts[current_using_fontname])/1000.0);
+		mm distance_line = descent + ascent + 2.0 ;
+		auto text_width = HPDF_Page_TextWidth(current_page,font_name.c_str());
+		HPDF_Page_TextOut(current_page,(page_width-text_width)/2.0,page_height-mm_to_px(5.0)-mm_to_px(distance_line),font_name.c_str());
+		text_width = HPDF_Page_TextWidth(current_page,to_string(data.f_type).c_str());
+		HPDF_Page_TextOut(current_page,(page_width-text_width)/2.0,page_height-mm_to_px(5.0)-mm_to_px(2*distance_line),to_string(data.f_type).c_str());
+		text_width = HPDF_Page_TextWidth(current_page,char_typenames.c_str());
+		HPDF_Page_TextOut(current_page,(page_width-text_width)/2.0,page_height-mm_to_px(5.0)-mm_to_px(3*distance_line),char_typenames.c_str());
+		HPDF_Page_EndText(current_page);
+
 		draw_corner_marker(0.0+garea_x_offset,garea_y_offset,corner_rotation::BL);
 		draw_corner_marker(mm_to_px(width_grids_area)+garea_x_offset,garea_y_offset,corner_rotation::BR);
 		draw_corner_marker(mm_to_px(width_grids_area)+garea_x_offset,mm_to_px(height_grids_area)+garea_y_offset,corner_rotation::TR);
