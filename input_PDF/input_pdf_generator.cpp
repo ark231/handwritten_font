@@ -172,6 +172,7 @@ namespace handfont{
 		}
 		HPDF_UseUTFEncodings(pdf);
 		HPDF_SetCurrentEncoder(pdf,"UTF-8");
+		HPDF_SetCompressionMode(pdf,HPDF_COMP_METADATA|HPDF_COMP_IMAGE);
 		font_name=fontname;
 		std::string qr_places[] = {"TL","TR","BL","BR"};
 		for(int i = 1;i<4;i++){
