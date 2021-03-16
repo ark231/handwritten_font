@@ -1,0 +1,11 @@
+fontname = "exsamplefont"
+fonttype = "both" #or "mono" ,"proportional"
+gridsize = "small" #or "large", "both"
+[chardefs.small.mono] # chardefs.type.size all of that is always neccesary
+set = "all" # use all chardef file in chardef directory
+[chardefs.small.proportional]
+set = "custom"
+[[chardefs.small.proportional.id_groups]] 
+begin = 0x0001
+end = 0x0002
+#single-file-range is expressed by setting the same value in begin and end
