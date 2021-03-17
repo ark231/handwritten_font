@@ -7,10 +7,12 @@
 #include<execinfo.h>
 #include<cxxabi.h>
 #include<regex>
+#include<filesystem>
 #include"input_pdf_generator.hpp"
 #include"input_pdf_consts.hpp"
 #include"chardef/parse_chardef.hpp"
 #include"general/helpers.hpp"
+namespace stdfsys = std::filesystem;
 namespace handfont{
 	px constexpr mm_to_px(mm input_mm){
 		return (input_mm*dpi)/mm_per_inch;
@@ -238,8 +240,9 @@ namespace handfont{
 
 		for(int i =0;i<data.required_fontnames.size();i++){
 			if(using_fonts.find(data.required_fontnames[i])==using_fonts.end()){
-				std::string fontfilename="../datas/"+data.required_fontnames[i]+".ttf";
-				auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_TRUE);
+				stdfsys::path fontfilepath = stdfsys::path(filemeta.get_rootdir()).parent_path()/"datas"/(data.required_fontnames[i]+".ttf");
+				//std::string fontfilename="../../datas/"+data.required_fontnames[i]+".ttf";
+				auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilepath.native().c_str(),HPDF_TRUE);
 				//auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_FALSE);//failed (tofu!)
 				using_fonts[data.required_fontnames[i]] = HPDF_GetFont(pdf,font_name,"UTF-8");
 			}
