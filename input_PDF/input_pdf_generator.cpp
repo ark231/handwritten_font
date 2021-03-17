@@ -4,6 +4,9 @@
 #include<unicode/unistr.h>
 #include<cmath>
 #include<iostream>
+#include<execinfo.h>
+#include<cxxabi.h>
+#include<regex>
 #include"input_pdf_generator.hpp"
 #include"input_pdf_consts.hpp"
 #include"chardef/parse_chardef.hpp"
@@ -14,7 +17,31 @@ namespace handfont{
 	}
 	void error_handler (HPDF_STATUS error_no, HPDF_STATUS detail_no, void *user_data)
 	{
-		throw std::runtime_error("ERROR: error_no=0x"+to_hex((unsigned int)error_no)+", detail_no=0x"+to_hex((int)detail_no)); /* throw exception on error */
+		constexpr int trace_size = 10;
+		void *trace[trace_size];
+		auto size = backtrace(trace, sizeof(trace));
+		auto symbols = backtrace_symbols(trace,size);
+		std::string err_msg = "ERROR: error_no=0x"+to_hex((unsigned int)error_no)+", detail_no=0x"+to_hex((int)detail_no);
+		err_msg +="\n\nBacktrace:";
+		for(int i = 0;i<size;i++){
+			std::smatch funcname;
+			auto symbol = std::string(symbols[i]);
+			auto getfuncname_regex = std::regex(R"(.*\((.+)\+.+\))");
+			std::regex_search(symbol,funcname,getfuncname_regex);
+			int status;
+			auto real_funcname = abi::__cxa_demangle(funcname[1].str().c_str(),0,0,&status);
+			std::string demangled_symbol;
+			if(real_funcname == nullptr){
+				demangled_symbol = symbol;
+			}else{
+				auto replace_funcname_regex = std::regex(R"((.*)\(.+(\+.+)\)(.*))");
+				auto format_replace = "$1("+std::string(real_funcname)+"$2)$3";
+				demangled_symbol = std::regex_replace(symbol,replace_funcname_regex,format_replace);
+			}
+			err_msg += "\n"+demangled_symbol;
+		}
+		delete symbols;
+		throw std::runtime_error(err_msg); /* throw exception on error */
 	}
 
 	mm input_pdf_generator::draw_write_grid(grid_size size,char_width width,guide_type type,bool is_Fixed_Based,px BL_x,px BL_y){
@@ -150,6 +177,7 @@ namespace handfont{
 		if(result == nullptr){
 			throw std::runtime_error("error: failed to load qrcode to pdf image!");
 		}
+		delete[] pixels;
 		return result;
 	}
 

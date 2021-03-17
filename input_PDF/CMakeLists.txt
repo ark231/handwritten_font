@@ -18,7 +18,8 @@ target_link_libraries(gen_input_pdf PUBLIC ${QRencode_LINK_LIBRARIES})
 target_link_libraries(gen_input_pdf PUBLIC ${HPDF})
 target_link_libraries(gen_input_pdf PUBLIC ${ICU_LIBRARIES})
 target_compile_options(gen_input_pdf PUBLIC $<IF:$<CONFIG:Debug>,-g3 -O0,>)
-target_compile_options(gen_input_pdf PUBLIC -Wall -Wextra)
+target_compile_options(gen_input_pdf PUBLIC -Wall -Wextra )
+target_link_options(gen_input_pdf PUBLIC -rdynamic)
 
 ##for debugging
 #message(STATUS "*** dump start cmake variables ***")
