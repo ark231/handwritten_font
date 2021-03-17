@@ -107,7 +107,7 @@ int main(int argc,char *argv[]){
 		}
 	}
 	
-	stdfsys::path outpath=stdfsys::path(project_filepath).parent_path().native()+fontname+".pdf";
+	stdfsys::path outpath=stdfsys::path(project_filepath).parent_path()/(fontname+".pdf");
 	result.saveto_file(outpath.native());
 	return 0;
 }
