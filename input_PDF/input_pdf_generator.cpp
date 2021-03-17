@@ -210,7 +210,7 @@ namespace handfont{
 
 		for(int i =0;i<data.required_fontnames.size();i++){
 			if(using_fonts.find(data.required_fontnames[i])==using_fonts.end()){
-				std::string fontfilename=data.required_fontnames[i]+".ttf";
+				std::string fontfilename="../datas/"+data.required_fontnames[i]+".ttf";
 				auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_TRUE);
 				//auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_FALSE);//failed (tofu!)
 				using_fonts[data.required_fontnames[i]] = HPDF_GetFont(pdf,font_name,"UTF-8");
