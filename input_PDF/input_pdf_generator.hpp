@@ -18,7 +18,7 @@ namespace handfont{
 
 		HPDF_Image generate_qr_code(const char*);
 		mm draw_write_grid(grid_size,char_width,guide_type,bool,px,px);
-		void draw_info_grid(grid_size,char_width,px,px,Unicode);
+		void draw_info_grid(grid_size,char_width,px,px,Unicode,bool);
 		void draw_grid_set(grid_size,character_info,bool,px,px);
 		void draw_corner_marker(px,px,corner_rotation);
 

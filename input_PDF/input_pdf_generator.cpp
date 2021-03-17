@@ -81,7 +81,7 @@ namespace handfont{
 		return result_height;
 	}
 
-	void input_pdf_generator::draw_info_grid(grid_size size,char_width width,px BL_x,px BL_y,Unicode character){
+	void input_pdf_generator::draw_info_grid(grid_size size,char_width width,px BL_x,px BL_y,Unicode character,bool has_alter){
 		px grid_height=mm_to_px(height_grid::SMALL);
 		px grid_width;
 		switch(size){
@@ -102,17 +102,22 @@ namespace handfont{
 		}
 		HPDF_Page_GSave(current_page);
 		HPDF_Page_SetRGBStroke(current_page,0.6,0.8,1.0);
-		HPDF_Page_Rectangle(current_page,BL_x,BL_y,grid_width,grid_height);
-		HPDF_Page_Stroke(current_page);
+		if(has_alter){
+			HPDF_Page_SetRGBFill(current_page,0.9,1.0,1.0);
+			HPDF_Page_Rectangle(current_page,BL_x,BL_y,grid_width,grid_height);
+			HPDF_Page_FillStroke(current_page);
+		}else{
+			HPDF_Page_Rectangle(current_page,BL_x,BL_y,grid_width,grid_height);
+			HPDF_Page_Stroke(current_page);
+		}
 		HPDF_Page_GRestore(current_page);
 		icu::UnicodeString unistr((UChar32)character);
-		std::string str;
-		unistr.toUTF8String(str);
+		std::string char_to_show;
+		unistr.toUTF8String(char_to_show);
 		HPDF_Page_BeginText(current_page);
-		//HPDF_Page_TextRect(current_page,BL_x,BL_y+grid_height,BL_x+grid_width,BL_y,str.c_str(),HPDF_TALIGN_CENTER,nullptr);
 		auto char_width = HPDF_Font_GetUnicodeWidth(using_fonts[current_using_fontname],character)*(mm_to_px(font_size)/1000.0);
 		auto char_xoffset = (grid_width-char_width)/2.0;
-		HPDF_Page_TextOut(current_page,BL_x+char_xoffset,BL_y+mm_to_px(font_size/5.0)+1,str.c_str());
+		HPDF_Page_TextOut(current_page,BL_x+char_xoffset,BL_y+mm_to_px(font_size/5.0)+1,char_to_show.c_str());
 		HPDF_Page_EndText(current_page);
 		/*alternative unicode text*/
 		HPDF_Page_GSave(current_page);
@@ -126,7 +131,7 @@ namespace handfont{
 
 	void input_pdf_generator::draw_grid_set(grid_size size,character_info current_char,bool is_Fixed_Based,px BL_x,px BL_y){
 		mm info_y_offset=draw_write_grid(size,current_char.width,current_char.g_type,is_Fixed_Based,BL_x,BL_y);
-		draw_info_grid(size,current_char.width,BL_x,BL_y+mm_to_px(info_y_offset),current_char.character);
+		draw_info_grid(size,current_char.width,BL_x,BL_y+mm_to_px(info_y_offset),current_char.character,current_char.has_alternative);
 	}
 
 	HPDF_Image input_pdf_generator::generate_qr_code(const char* data){
@@ -222,9 +227,6 @@ namespace handfont{
 		px garea_x_offset = (page_width-mm_to_px(width_grids_area))/2.0;
 		px garea_y_offset = (page_height-mm_to_px(height_grids_area))/2.0;
 
-		px title_x_offset = garea_x_offset+mm_to_px(height_grid::SMALL*3);
-		px title_y_offset = page_height-garea_x_offset+mm_to_px(height_grid::SMALL);
-		//auto title = font_name+"\n"+to_string(data.f_type)+"\n";
 		std::string char_typenames;
 		for(const auto& char_typename : data.char_typenames){
 			char_typenames += char_typename+" ";
