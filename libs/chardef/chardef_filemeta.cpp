@@ -7,6 +7,7 @@
 //#include<iomanip>
 
 #include"chardef_filemeta.hpp"
+#include"chardef_convert_consts.hpp"
 #include"general/helpers.hpp"
 namespace stdfsys=std::filesystem;
 namespace handfont{

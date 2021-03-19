@@ -8,11 +8,6 @@
 #include<toml.hpp>
 #include<algorithm>
 
-#if defined(__linux__)
-#elif defined(_Windows)
-#include<windows.h>
-#endif
-
 #include"chardef/parse_chardef.hpp"
 #include"chardef/chardef_filemeta.hpp"
 #include"general/helpers.hpp"
@@ -24,7 +19,6 @@ namespace stdfsys=std::filesystem;
 
 std::vector<int> parse_ranges(toml::value,std::string,std::string,std::string);
 void add_pages(handfont::input_pdf_generator&,std::vector<int>,handfont::filecode,std::string);
-stdfsys::path get_self_dir();
 
 int main(int argc,char *argv[]){
 	bpo::options_description opt("option");
@@ -35,7 +29,7 @@ int main(int argc,char *argv[]){
 		("font_type,f",bpo::value<std::string>(),"フォントのタイプ 必須")
 		("file_id,i",bpo::value<std::string>(),"ファイルid 必須")
 		*/
-		("chardef_dir,d",bpo::value<std::string>()->default_value(get_self_dir().parent_path().native()+"/chardefs"),"文字定義ファイルのあるディレクトリ")
+		("chardef_dir,d",bpo::value<std::string>()->default_value(handfont::get_self_dir().parent_path().native()+"/chardefs"),"文字定義ファイルのあるディレクトリ")
 		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル");
 	bpo::variables_map varmap;
 	bpo::store(bpo::parse_command_line(argc,argv,opt),varmap);
@@ -137,15 +131,4 @@ void add_pages(handfont::input_pdf_generator& result,std::vector<int> file_ids,h
 		handfont::chardef_filemeta input_filemeta(input_code,file_rootdir);
 		result.add_page(input_filemeta);
 	}
-}
-
-stdfsys::path get_self_dir(){
-	stdfsys::path result;
-#if defined(__linux__)
-	result = stdfsys::read_symlink(stdfsys::path("/proc/self/exe")).parent_path();
-#elif defined(_Windows) //not tested
-	char selfpath[MAX_PATH+1]
-	result = stdfsys::path(GetModuleFileName(nullptr,selfpath,MAX_PATH)).parent_path();
-#endif
-	return result;
 }

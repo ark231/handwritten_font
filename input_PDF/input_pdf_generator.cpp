@@ -11,6 +11,7 @@
 #include"input_pdf_generator.hpp"
 #include"input_pdf_consts.hpp"
 #include"chardef/parse_chardef.hpp"
+#include"chardef/chardef_convert_consts.hpp"
 #include"general/helpers.hpp"
 namespace stdfsys = std::filesystem;
 namespace handfont{
@@ -74,7 +75,7 @@ namespace handfont{
 			result_height*=3/2.0;
 		}
 		HPDF_Page_GSave(current_page);
-		HPDF_Page_SetRGBStroke(current_page,0.6,0.8,1.0);
+		HPDF_Page_SetRGBStroke(current_page,0.7,0.9,1.0);
 		HPDF_Page_Rectangle(current_page,BL_x,BL_y,grid_width,grid_height);
 		HPDF_Page_Stroke(current_page);
 		HPDF_Page_SetLineWidth(current_page,0.5);
@@ -130,7 +131,7 @@ namespace handfont{
 				break;
 		}
 		HPDF_Page_GSave(current_page);
-		HPDF_Page_SetRGBStroke(current_page,0.6,0.8,1.0);
+		HPDF_Page_SetRGBStroke(current_page,0.7,0.9,1.0);
 		if(has_alter){
 			HPDF_Page_SetRGBFill(current_page,0.9,1.0,1.0);
 			HPDF_Page_Rectangle(current_page,BL_x,BL_y,grid_width,grid_height);

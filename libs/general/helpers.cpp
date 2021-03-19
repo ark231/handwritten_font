@@ -1,6 +1,9 @@
-#include<sstream>
-#include<iomanip>
 #include<string>
+
+#if defined(__linux__)
+#elif defined(_Windows)
+#include<windows.h>
+#endif
 
 #include"helpers.hpp"
 #include"chardef/chardef_consts.hpp"
@@ -15,46 +18,14 @@ namespace handfont{
 		result<<std::setw(width)<<std::setfill(fillchar)<<std::hex<<num;
 		return result.str();
 	}
-	std::string to_string(const grid_size size){
-		std::string result;
-		switch(size){
-			case grid_size::SMALL:
-				result = "small";
-				break;
-			case grid_size::LARGE:
-				result = "large";
-				break;
-		}
+	stdfsys::path get_self_dir(){
+		stdfsys::path result;
+#if defined(__linux__)
+		result = stdfsys::read_symlink(stdfsys::path("/proc/self/exe")).parent_path();
+#elif defined(_Windows) //not tested
+		char selfpath[MAX_PATH+1]
+		result = stdfsys::path(GetModuleFileName(nullptr,selfpath,MAX_PATH)).parent_path();
+#endif
 		return result;
-	}
-	std::string to_string(const font_type type){
-		std::string result;
-		switch(type){
-			case font_type::MONO:
-				result = "mono";
-				break;
-			case font_type::PROPORTIONAL:
-				result = "proportional";
-				break;
-		}
-		return result;
-	}
-	grid_size to_grid_size(const std::string input){
-		grid_size result;
-		if(input == "small"){
-			result = grid_size::SMALL;
-		}else if(input == "large"){
-			result = grid_size::LARGE;
-		}
-		return result;
-	}
-	font_type to_font_type(const std::string input){
-		font_type result;
-		if(input == "mono"){
-			result = font_type::MONO;
-		}else if(input == "proportional"){
-			result = font_type::PROPORTIONAL;
-		}
-		return result;
-	}
+}
 }
