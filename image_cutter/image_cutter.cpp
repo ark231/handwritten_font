@@ -35,12 +35,16 @@ int main(int argc,char *argv[]){
 		auto image = cv::imread(filepath.path().native());
 		if(image.empty()){
 			std::cerr<<"error: couldn't load input image file "<<filepath.path().native()<<std::endl;
-			std::exit(EXIT_FAILURE);
+			continue;
 		}
-		std::cout<<"successfully loaded imput image "<<filepath.path().native()<<std::endl;
+		std::cout<<"successfully loaded input image "<<filepath.path().native()<<std::endl;
 		cv::Mat image_blue(image.rows,image.cols,CV_8UC1);
-		cv::extractChannel(image,image_blue,0);
-		auto outfilepath = (project_dir/"output"/"test.png");
+		if(image.channels()!=1){
+			cv::extractChannel(image,image_blue,0);
+		}else{
+			image_blue = image;
+		}
+		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue.png"));
 		try{
 			cv::imwrite(outfilepath.native(),image_blue);
 		}
@@ -49,7 +53,7 @@ int main(int argc,char *argv[]){
 			std::cerr<<excep.what()<<std::endl;
 			std::exit(EXIT_FAILURE);
 		}
-		return 0;
+		std::cout<<"successfully written into "<<outfilepath.native()<<std::endl;
 	}
 	return 0;
 }
