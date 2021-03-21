@@ -18,7 +18,10 @@ int main(int argc,char *argv[]){
 	opt.add_options()
 		("help,h","show this help")
 		("chardef_dir,d",bpo::value<std::string>()->default_value(handfont::get_self_dir().parent_path().native()+"/chardefs"),"文字定義ファイルのあるディレクトリ")
-		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル");
+		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル")
+		//for experiment
+		("block_size,s",bpo::value<int>(),"size of binarize block")
+		("constant,c",bpo::value<int>(),"constant");
 	bpo::variables_map varmap;
 	bpo::store(bpo::parse_command_line(argc,argv,opt),varmap);
 	bpo::notify(varmap);
@@ -33,6 +36,10 @@ int main(int argc,char *argv[]){
 	}
 	auto file_rootdir = varmap["chardef_dir"].as<std::string>();
 	auto project_filepath = stdfsys::path(varmap["project_file"].as<std::string>());
+	//for experiment
+	auto block_size = varmap["block_size"].as<int>();
+	auto constant = varmap["constant"].as<int>();
+
 	auto project_dir = project_filepath.parent_path();
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
 		auto image = cv::imread(filepath.path().native());
@@ -47,12 +54,18 @@ int main(int argc,char *argv[]){
 		}else{
 			image_blue = image;
 		}
+		cv::Mat image_bin(image.rows,image.cols,CV_8UC1);
+		std::cout<<"start trying to binalize"<<std::endl;
+		//cv::threshold(image_blue,image_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
+		cv::adaptiveThreshold(image_blue,image_bin,0xff,cv::ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY,block_size,constant);
+		std::cout<<"finish binalization"<<std::endl;
+		/*
 		cv::QRCodeDetector qr_detector;
 		std::vector<std::string> qr_infos;
 		//std::vector<cv::Point> qr_vertices;
 		cv::Mat qr_vertices;
 		std::cout<<"start detecting and decoding qr codes"<<std::endl;
-		qr_detector.detectAndDecodeMulti(image_blue,qr_infos,qr_vertices);
+		qr_detector.detectAndDecodeMulti(image_bin,qr_infos,qr_vertices);
 		if(qr_infos.empty()){
 			std::cerr<<"error: couldn't detect nor decode qr codes in the input image!"<<std::endl;
 			continue;
@@ -60,9 +73,10 @@ int main(int argc,char *argv[]){
 		for(const auto& qr_info : qr_infos){
 			std::cout<<qr_info<<std::endl;
 		}
-		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue.png"));
+		*/
+		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue_bin.png"));
 		try{
-			cv::imwrite(outfilepath.native(),image_blue);
+			cv::imwrite(outfilepath.native(),image_bin);
 		}
 		catch(cv::Exception excep){
 			std::cerr<<"error: couldn't write image to "<<outfilepath.native()<<std::endl;
