@@ -21,7 +21,8 @@ int main(int argc,char *argv[]){
 		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル")
 		//for experiment
 		("block_size,s",bpo::value<int>(),"size of binarize block")
-		("constant,c",bpo::value<int>(),"constant");
+		("constant,c",bpo::value<int>(),"constant")
+		("threshold,s",bpo::value<int>(),"threshold for edge detection");
 	bpo::variables_map varmap;
 	bpo::store(bpo::parse_command_line(argc,argv,opt),varmap);
 	bpo::notify(varmap);
@@ -39,6 +40,7 @@ int main(int argc,char *argv[]){
 	//for experiment
 	auto block_size = varmap["block_size"].as<int>();
 	auto constant = varmap["constant"].as<int>();
+	auto threshold = varmap["threshold"].as<int>();
 
 	auto project_dir = project_filepath.parent_path();
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
@@ -56,9 +58,11 @@ int main(int argc,char *argv[]){
 		}
 		cv::Mat image_bin(image.rows,image.cols,CV_8UC1);
 		std::cout<<"start trying to binalize"<<std::endl;
-		//cv::threshold(image_blue,image_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
-		cv::adaptiveThreshold(image_blue,image_bin,0xff,cv::ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY,block_size,constant);
+		cv::threshold(image_blue,image_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
+		//cv::adaptiveThreshold(image_blue,image_bin,0xff,cv::ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY,block_size,constant);
 		std::cout<<"finish binalization"<<std::endl;
+		cv::Mat image_edge(image.size(),CV_8UC1);
+		cv::Canny(image_bin,image_edge,threshold,threshold*3,block_size);
 		/*
 		cv::QRCodeDetector qr_detector;
 		std::vector<std::string> qr_infos;
@@ -74,10 +78,10 @@ int main(int argc,char *argv[]){
 			std::cout<<qr_info<<std::endl;
 		}
 		*/
-		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue_bin.png"));
+		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue_edge.png"));
 		try{
-			cv::imwrite(outfilepath.native(),image_bin);
-		}
+			cv::imwrite(outfilepath.native(),image_edge);
+	}
 		catch(cv::Exception excep){
 			std::cerr<<"error: couldn't write image to "<<outfilepath.native()<<std::endl;
 			std::cerr<<excep.what()<<std::endl;
