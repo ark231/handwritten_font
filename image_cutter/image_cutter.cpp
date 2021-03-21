@@ -1,4 +1,5 @@
 #include<opencv2/core.hpp>
+#include<opencv2/imgproc.hpp>
 #include<opencv2/imgcodecs.hpp>
 #include<opencv2/highgui.hpp>
 #include<opencv2/imgproc.hpp>
@@ -22,7 +23,11 @@ int main(int argc,char *argv[]){
 		//for experiment
 		("block_size,s",bpo::value<int>(),"size of binarize block")
 		("constant,c",bpo::value<int>(),"constant")
-		("threshold,s",bpo::value<int>(),"threshold for edge detection");
+		("threshold,t",bpo::value<int>(),"threshold for edge detection");
+		("diameter,a",bpo::value<int>(),"プロジェクトファイル")
+		("sigma_color,b",bpo::value<int>(),"プロジェクトファイル")
+		("sigma_space,e",bpo::value<int>(),"プロジェクトファイル");
+
 	bpo::variables_map varmap;
 	bpo::store(bpo::parse_command_line(argc,argv,opt),varmap);
 	bpo::notify(varmap);
@@ -41,6 +46,9 @@ int main(int argc,char *argv[]){
 	auto block_size = varmap["block_size"].as<int>();
 	auto constant = varmap["constant"].as<int>();
 	auto threshold = varmap["threshold"].as<int>();
+	auto diameter = varmap["diameter"].as<int>();
+	auto sigma_color = varmap["sigma_color"].as<int>();
+	auto sigma_space = varmap["sigma_space"].as<int>();
 
 	auto project_dir = project_filepath.parent_path();
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
@@ -56,13 +64,18 @@ int main(int argc,char *argv[]){
 		}else{
 			image_blue = image;
 		}
+<<<<<<< HEAD
 		cv::Mat image_bin(image.rows,image.cols,CV_8UC1);
 		std::cout<<"start trying to binalize"<<std::endl;
 		cv::threshold(image_blue,image_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
 		//cv::adaptiveThreshold(image_blue,image_bin,0xff,cv::ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY,block_size,constant);
 		std::cout<<"finish binalization"<<std::endl;
+		
+		cv::Mat image_blurred(image.rows,image.cols,CV_8UC1);
+		cv::bilateralFilter(image_bin,image_blurred,diameter,sigma_color,sigma_space);
 		cv::Mat image_edge(image.size(),CV_8UC1);
-		cv::Canny(image_bin,image_edge,threshold,threshold*3,block_size);
+
+		cv::Canny(image_blurred,image_edge,threshold,threshold*3,block_size);
 		/*
 		cv::QRCodeDetector qr_detector;
 		std::vector<std::string> qr_infos;
@@ -73,10 +86,6 @@ int main(int argc,char *argv[]){
 		if(qr_infos.empty()){
 			std::cerr<<"error: couldn't detect nor decode qr codes in the input image!"<<std::endl;
 			continue;
-		}
-		for(const auto& qr_info : qr_infos){
-			std::cout<<qr_info<<std::endl;
-		}
 		*/
 		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue_edge.png"));
 		try{
