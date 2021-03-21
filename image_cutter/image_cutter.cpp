@@ -1,4 +1,5 @@
 #include<opencv2/core.hpp>
+#include<opencv2/imgproc.hpp>
 #include<opencv2/imgcodecs.hpp>
 #include<opencv2/highgui.hpp>
 #include<boost/program_options.hpp>
@@ -15,7 +16,11 @@ int main(int argc,char *argv[]){
 	opt.add_options()
 		("help,h","show this help")
 		("chardef_dir,d",bpo::value<std::string>()->default_value(handfont::get_self_dir().parent_path().native()+"/chardefs"),"文字定義ファイルのあるディレクトリ")
-		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル");
+		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル")
+		/* args for test. must be removed*/
+		("diameter,d",bpo::value<int>(),"プロジェクトファイル")
+		("sigma_color,c",bpo::value<int>(),"プロジェクトファイル")
+		("sigma_space,s",bpo::value<int>(),"プロジェクトファイル");
 	bpo::variables_map varmap;
 	bpo::store(bpo::parse_command_line(argc,argv,opt),varmap);
 	bpo::notify(varmap);
@@ -30,6 +35,12 @@ int main(int argc,char *argv[]){
 	}
 	auto file_rootdir = varmap["chardef_dir"].as<std::string>();
 	auto project_filepath = stdfsys::path(varmap["project_file"].as<std::string>());
+
+	/*args for test. must be removed*/
+	auto diameter = varmap["diameter"].as<int>();
+	auto sigma_color = varmap["sigma_color"].as<int>();
+	auto sigma_space = varmap["sigma_space"].as<int>();
+
 	auto project_dir = project_filepath.parent_path();
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
 		auto image = cv::imread(filepath.path().native());
@@ -44,7 +55,11 @@ int main(int argc,char *argv[]){
 		}else{
 			image_blue = image;
 		}
-		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue.png"));
+		/* maybe opening & closing is better , should be tried.*/
+		cv::Mat image_blurred(image.rows,image.cols,CV_8UC1);
+		cv::bilateralFilter(image,image_blurred,diameter,sigma_color,sigma_space);
+		//image_bin = 
+		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue_blurred.png"));
 		try{
 			cv::imwrite(outfilepath.native(),image_blue);
 		}
