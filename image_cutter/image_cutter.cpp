@@ -1,10 +1,13 @@
 #include<opencv2/core.hpp>
 #include<opencv2/imgcodecs.hpp>
 #include<opencv2/highgui.hpp>
+#include<opencv2/imgproc.hpp>
+#include<opencv2/objdetect.hpp>
 #include<boost/program_options.hpp>
 #include<iostream>
 #include<string>
 #include<filesystem>
+#include<vector>
 
 #include"general/helpers.hpp"
 namespace bpo=boost::program_options;
@@ -43,6 +46,19 @@ int main(int argc,char *argv[]){
 			cv::extractChannel(image,image_blue,0);
 		}else{
 			image_blue = image;
+		}
+		cv::QRCodeDetector qr_detector;
+		std::vector<std::string> qr_infos;
+		//std::vector<cv::Point> qr_vertices;
+		cv::Mat qr_vertices;
+		std::cout<<"start detecting and decoding qr codes"<<std::endl;
+		qr_detector.detectAndDecodeMulti(image_blue,qr_infos,qr_vertices);
+		if(qr_infos.empty()){
+			std::cerr<<"error: couldn't detect nor decode qr codes in the input image!"<<std::endl;
+			continue;
+		}
+		for(const auto& qr_info : qr_infos){
+			std::cout<<qr_info<<std::endl;
 		}
 		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue.png"));
 		try{

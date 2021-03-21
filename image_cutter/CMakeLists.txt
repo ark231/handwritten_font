@@ -4,7 +4,7 @@ find_package(Boost 1.71 COMPONENTS program_options REQUIRED )
 #find_package(ICU 61.0 COMPONENTS uc REQUIRED)
 #find_package(PkgConfig REQUIRED)
 #pkg_check_modules(Opencv opencv4 REQUIRED)
-find_package(OpenCV 4.3 COMPONENTS core imgcodecs highgui REQUIRED)
+find_package(OpenCV 4.3 COMPONENTS core imgcodecs highgui imgproc objdetect REQUIRED)
 
 add_executable(image_cutter image_cutter.cpp )
 target_include_directories(image_cutter PUBLIC ${Boost_INCLUDE_DIR} )
