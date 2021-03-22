@@ -11,6 +11,7 @@
 #include<vector>
 
 #include"general/helpers.hpp"
+#include"image_utils.hpp"
 namespace bpo=boost::program_options;
 namespace stdfsys=std::filesystem;
 
@@ -20,11 +21,12 @@ int main(int argc,char *argv[]){
 		("help,h","show this help")
 		("chardef_dir,d",bpo::value<std::string>()->default_value(handfont::get_self_dir().parent_path().native()+"/chardefs"),"文字定義ファイルのあるディレクトリ")
 		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル")
+		("dpi,i",bpo::value<handfont::dpi>(),"入力画像のスケール");
 		//for experiment
-		("block_size,s",bpo::value<int>(),"size of binarize block")
-		("constant,c",bpo::value<int>(),"constant")
-		("threshold,t",bpo::value<int>(),"threshold for edge detection")
-		("diameter,a",bpo::value<int>(),"プロジェクトファイル");
+		//("block_size,s",bpo::value<int>(),"size of binarize block")
+		//("constant,c",bpo::value<int>(),"constant")
+		//("threshold,t",bpo::value<int>(),"threshold for edge detection")
+		//("diameter,a",bpo::value<int>(),"size of blur kernel");
 		/*
 		("sigma_color,b",bpo::value<int>(),"プロジェクトファイル")
 		("sigma_space,e",bpo::value<int>(),"プロジェクトファイル");
@@ -44,11 +46,13 @@ int main(int argc,char *argv[]){
 	}
 	auto file_rootdir = varmap["chardef_dir"].as<std::string>();
 	auto project_filepath = stdfsys::path(varmap["project_file"].as<std::string>());
+	auto dpmm = handfont::dpi_to_dpmm(varmap["dpi"].as<handfont::dpi>());
+	auto block_size = 1.0*dpmm;
 	//for experiment
-	auto block_size = varmap["block_size"].as<int>();
-	auto constant = varmap["constant"].as<int>();
-	auto threshold = varmap["threshold"].as<int>();
-	auto diameter = varmap["diameter"].as<int>();
+	//auto block_size = varmap["block_size"].as<int>();
+	//auto constant = varmap["constant"].as<int>();
+	//auto threshold = varmap["threshold"].as<int>();
+	//auto diameter = varmap["diameter"].as<int>();
 	/*
 	auto sigma_color = varmap["sigma_color"].as<int>();
 	auto sigma_space = varmap["sigma_space"].as<int>();
@@ -75,7 +79,8 @@ int main(int argc,char *argv[]){
 		std::cout<<"finish binalization"<<std::endl;
 		cv::Mat image_blurred(image.rows,image.cols,CV_8UC1);
 		//cv::bilateralFilter(image_bin,image_blurred,diameter,sigma_color,sigma_space);
-		cv::blur(image_bin,image_blurred,cv::Size(diameter,diameter));
+		//cv::blur(image_bin,image_blurred,cv::Size(diameter,diameter));
+		image_blurred = image_bin;
 
 		cv::Mat image_dialate(image.size(),CV_8UC1);
 		cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,cv::Size(block_size,block_size));
@@ -100,13 +105,15 @@ int main(int argc,char *argv[]){
 		std::vector<cv::Vec4i> hierarchy;
 		cv::findContours(image_edge,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
 
-		std::vector<std::vector<cv::Point>> contours_poly(contours.size() );
-		std::vector<cv::Rect> boundRect( contours.size() );
-		for( size_t i = 0; i < contours.size(); i++ )
-		{
+		std::vector<std::vector<cv::Point>> contours_poly(contours.size());
+		std::vector<cv::Rect> boundRects;
+		for( size_t i = 0; i < contours.size(); i++ ){
 			//cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
 			contours_poly[i] = contours[i];
-			boundRect[i] = cv::boundingRect( contours_poly[i] );
+			auto bound_rect_tmp = cv::boundingRect(contours_poly[i]);
+			if(bound_rect_tmp.area() > 15*dpmm*15*dpmm){
+				boundRects.push_back(bound_rect_tmp);
+			}
 		}
 
 		cv::Mat result = cv::Mat::zeros(image_edge.size(),CV_8UC3);
@@ -114,7 +121,11 @@ int main(int argc,char *argv[]){
 		for( size_t i = 0; i< contours.size(); i++ ) {
 			cv::Scalar color = cv::Scalar(rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256));
 			cv::drawContours(result, contours, (int)i, color);
-			cv::rectangle(result,boundRect[i].tl(),boundRect[i].br(),color,3);
+			//cv::rectangle(result,boundRects[i].tl(),boundRects[i].br(),color,3);
+		}
+		for(const auto& boundRect : boundRects){
+			cv::Scalar color = cv::Scalar(rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256));
+			cv::rectangle(result,boundRect.tl(),boundRect.br(),color,3);
 		}
 		/*
 		cv::QRCodeDetector qr_detector;
