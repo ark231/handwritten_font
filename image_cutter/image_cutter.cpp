@@ -23,10 +23,12 @@ int main(int argc,char *argv[]){
 		//for experiment
 		("block_size,s",bpo::value<int>(),"size of binarize block")
 		("constant,c",bpo::value<int>(),"constant")
-		("threshold,t",bpo::value<int>(),"threshold for edge detection");
-		("diameter,a",bpo::value<int>(),"プロジェクトファイル")
+		("threshold,t",bpo::value<int>(),"threshold for edge detection")
+		("diameter,a",bpo::value<int>(),"プロジェクトファイル");
+		/*
 		("sigma_color,b",bpo::value<int>(),"プロジェクトファイル")
 		("sigma_space,e",bpo::value<int>(),"プロジェクトファイル");
+		*/
 
 	bpo::variables_map varmap;
 	bpo::store(bpo::parse_command_line(argc,argv,opt),varmap);
@@ -47,8 +49,10 @@ int main(int argc,char *argv[]){
 	auto constant = varmap["constant"].as<int>();
 	auto threshold = varmap["threshold"].as<int>();
 	auto diameter = varmap["diameter"].as<int>();
+	/*
 	auto sigma_color = varmap["sigma_color"].as<int>();
 	auto sigma_space = varmap["sigma_space"].as<int>();
+	*/
 
 	auto project_dir = project_filepath.parent_path();
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
@@ -64,18 +68,28 @@ int main(int argc,char *argv[]){
 		}else{
 			image_blue = image;
 		}
-<<<<<<< HEAD
 		cv::Mat image_bin(image.rows,image.cols,CV_8UC1);
 		std::cout<<"start trying to binalize"<<std::endl;
 		cv::threshold(image_blue,image_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
 		//cv::adaptiveThreshold(image_blue,image_bin,0xff,cv::ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY,block_size,constant);
 		std::cout<<"finish binalization"<<std::endl;
-		
 		cv::Mat image_blurred(image.rows,image.cols,CV_8UC1);
-		cv::bilateralFilter(image_bin,image_blurred,diameter,sigma_color,sigma_space);
+		//cv::bilateralFilter(image_bin,image_blurred,diameter,sigma_color,sigma_space);
+		cv::blur(image_bin,image_blurred,cv::Size(diameter,diameter));
 		cv::Mat image_edge(image.size(),CV_8UC1);
 
-		cv::Canny(image_blurred,image_edge,threshold,threshold*3,block_size);
+		//cv::Canny(image_blurred,image_edge,threshold,threshold*3,block_size);
+		image_edge = image_blurred;
+		auto image_edge2 = image_edge.clone();
+		std::vector<std::vector<cv::Point>> contours;
+		std::vector<cv::Vec4i> hierarchy;
+		cv::findContours(image_edge,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
+		cv::Mat result = cv::Mat::zeros(image_edge.size(),CV_8UC3);
+		cv::RNG rng(12345);
+		for( size_t i = 0; i< contours.size(); i++ ) {
+			cv::Scalar color = cv::Scalar(rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256));
+			cv::drawContours(result, contours, (int)i, color);
+		}
 		/*
 		cv::QRCodeDetector qr_detector;
 		std::vector<std::string> qr_infos;
@@ -89,7 +103,7 @@ int main(int argc,char *argv[]){
 		*/
 		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue_edge.png"));
 		try{
-			cv::imwrite(outfilepath.native(),image_edge);
+			cv::imwrite(outfilepath.native(),result);
 	}
 		catch(cv::Exception excep){
 			std::cerr<<"error: couldn't write image to "<<outfilepath.native()<<std::endl;
