@@ -76,19 +76,45 @@ int main(int argc,char *argv[]){
 		cv::Mat image_blurred(image.rows,image.cols,CV_8UC1);
 		//cv::bilateralFilter(image_bin,image_blurred,diameter,sigma_color,sigma_space);
 		cv::blur(image_bin,image_blurred,cv::Size(diameter,diameter));
+
+		cv::Mat image_dialate(image.size(),CV_8UC1);
+		cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,cv::Size(block_size,block_size));
+		cv::erode( image_blurred, image_dialate, element );
+		auto outfilepath_erode = (project_dir/"output"/(filepath.path().filename().native()+"_blue_erode.png"));
+		try{
+			cv::imwrite(outfilepath_erode.native(),image_dialate);
+		}
+		catch(cv::Exception excep){
+			std::cerr<<"error: couldn't write image to "<<outfilepath_erode.native()<<std::endl;
+			std::cerr<<excep.what()<<std::endl;
+			std::exit(EXIT_FAILURE);
+		}
+		std::cout<<"successfully written into "<<outfilepath_erode.native()<<std::endl;
+
 		cv::Mat image_edge(image.size(),CV_8UC1);
 
 		//cv::Canny(image_blurred,image_edge,threshold,threshold*3,block_size);
-		image_edge = image_blurred;
+		image_edge = image_dialate;
 		auto image_edge2 = image_edge.clone();
 		std::vector<std::vector<cv::Point>> contours;
 		std::vector<cv::Vec4i> hierarchy;
 		cv::findContours(image_edge,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
+
+		std::vector<std::vector<cv::Point>> contours_poly(contours.size() );
+		std::vector<cv::Rect> boundRect( contours.size() );
+		for( size_t i = 0; i < contours.size(); i++ )
+		{
+			//cv::approxPolyDP( contours[i], contours_poly[i], 3, true );
+			contours_poly[i] = contours[i];
+			boundRect[i] = cv::boundingRect( contours_poly[i] );
+		}
+
 		cv::Mat result = cv::Mat::zeros(image_edge.size(),CV_8UC3);
 		cv::RNG rng(12345);
 		for( size_t i = 0; i< contours.size(); i++ ) {
 			cv::Scalar color = cv::Scalar(rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256));
 			cv::drawContours(result, contours, (int)i, color);
+			cv::rectangle(result,boundRect[i].tl(),boundRect[i].br(),color,3);
 		}
 		/*
 		cv::QRCodeDetector qr_detector;
@@ -104,13 +130,14 @@ int main(int argc,char *argv[]){
 		auto outfilepath = (project_dir/"output"/(filepath.path().filename().native()+"_blue_edge.png"));
 		try{
 			cv::imwrite(outfilepath.native(),result);
-	}
+		}
 		catch(cv::Exception excep){
 			std::cerr<<"error: couldn't write image to "<<outfilepath.native()<<std::endl;
 			std::cerr<<excep.what()<<std::endl;
 			std::exit(EXIT_FAILURE);
 		}
 		std::cout<<"successfully written into "<<outfilepath.native()<<std::endl;
+
 	}
 	return 0;
 }
