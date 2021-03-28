@@ -1,4 +1,4 @@
-fontname = "exsamplefont"
+fontname = "exsamplefont" #using less than 21 letters is recommended. Above that, the TL qr-code will get too big
 fonttype = "both" #or "mono" ,"proportional"
 gridsize = "small" #or "large", "both"
 [chardefs.small.mono] # chardefs.type.size all of that is always neccesary
