@@ -9,6 +9,7 @@
 #include<string>
 #include<filesystem>
 #include<vector>
+#include<spdlog/spdlog.h>
 
 #include"general/helpers.hpp"
 #include"image_utils.hpp"
@@ -38,7 +39,8 @@ int main(int argc,char *argv[]){
 		("help,h","show this help")
 		("chardef_dir,d",bpo::value<std::string>()->default_value(handfont::get_self_dir().parent_path().native()+"/chardefs"),"文字定義ファイルのあるディレクトリ")
 		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル")
-		("dpi,i",bpo::value<handfont::dpi>(),"入力画像のスケール");
+		("dpi,i",bpo::value<handfont::dpi>(),"入力画像のスケール")
+		("debug,b","デバッグ用出力を有効化する");
 		//for experiment
 		//("block_size,s",bpo::value<int>(),"size of binarize block")
 		//("constant,c",bpo::value<int>(),"constant")
@@ -57,9 +59,12 @@ int main(int argc,char *argv[]){
 		std::exit(EXIT_SUCCESS);
 	}
 	if(!varmap.count("project_file")){
-		std::cout<<"error: not enough arguments"<<std::endl;
+		spdlog::error("error: not enough arguments");
 		std::cout<<opt<<std::endl;
 		std::exit(EXIT_FAILURE);
+	}
+	if(varmap.count("debug")){
+		spdlog::set_level(spdlog::level::debug);
 	}
 	auto file_rootdir = varmap["chardef_dir"].as<std::string>();
 	auto project_filepath = stdfsys::path(varmap["project_file"].as<std::string>());
@@ -79,10 +84,10 @@ int main(int argc,char *argv[]){
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
 		auto image = cv::imread(filepath.path().native());
 		if(image.empty()){
-			std::cerr<<"error: couldn't load input image file "<<filepath.path().native()<<std::endl;
+			spdlog::error("error: couldn't load input image file "+filepath.path().native());
 			continue;
 		}
-		std::cout<<"successfully loaded input image "<<filepath.path().native()<<std::endl;
+		spdlog::info("successfully loaded input image "+filepath.path().native());
 		cv::Mat image_blue(image.rows,image.cols,CV_8UC1);
 		if(image.channels()!=1){
 			cv::extractChannel(image,image_blue,0);
@@ -90,10 +95,10 @@ int main(int argc,char *argv[]){
 			image_blue = image;
 		}
 		cv::Mat image_bin(image.rows,image.cols,CV_8UC1);
-		std::cout<<"start trying to binalize"<<std::endl;
+		spdlog::info("start trying to binalize");
 		cv::threshold(image_blue,image_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
 		//cv::adaptiveThreshold(image_blue,image_bin,0xff,cv::ADAPTIVE_THRESH_MEAN_C,cv::THRESH_BINARY,block_size,constant);
-		std::cout<<"finish binalization"<<std::endl;
+		spdlog::info("finish binalization");
 		cv::Mat image_blurred(image.rows,image.cols,CV_8UC1);
 		//cv::bilateralFilter(image_bin,image_blurred,diameter,sigma_color,sigma_space);
 		//cv::blur(image_bin,image_blurred,cv::Size(diameter,diameter));
@@ -136,7 +141,7 @@ int main(int argc,char *argv[]){
 		std::vector<std::string> qr_infos;
 		std::vector<std::vector<cv::Point>> qr_vertices;// multi 'multi vertex'
 		std::vector<qr_code> qr_codes;
-		std::cout<<"start detecting qr codes and corner marcers"<<std::endl;
+		spdlog::info("start detecting qr codes and corner marcers");
 		int counter_corner=0;
 		for(const auto& boundRect : boundRects){
 			cv::Mat qr_area(image_bin,boundRect);
@@ -193,7 +198,7 @@ int main(int argc,char *argv[]){
 				}
 			}
 			///*
-			std::cout<<std::to_string(contours_poly.size())<<std::endl;
+			spdlog::debug("{} contours found",std::to_string(contours_poly.size()));
 			for(size_t i =0;i<contours_poly.size();i++){
 				cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
 				cv::drawContours( corner_edge_color, contours_poly, (int)i, color,2);
@@ -208,14 +213,14 @@ int main(int argc,char *argv[]){
 			counter_corner++;
 			//*/
 		}
-		std::cout<<std::to_string(qr_codes.size())<<std::endl;
+		spdlog::debug("{} qr codes found",std::to_string(qr_codes.size()));
 		if(qr_codes.size() < 4){
-			std::cerr<<"error: couldn't detect nor decode enough qr codes in the input image!"<<std::endl;
+			spdlog::error("error: couldn't detect nor decode enough qr codes in the input image!");
 			continue;
 		}
 		for(const auto& qr_code: qr_codes){
 			if(!qr_code.data.empty()){
-				std::cout<<qr_code.data<<std::endl;
+				spdlog::debug(qr_code.data);
 			}
 		}
 		//writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_blue_edge.png")),result);
@@ -229,9 +234,8 @@ void writeto_file(stdfsys::path outfilepath,cv::Mat image){
 		cv::imwrite(outfilepath.native(),image);
 	}
 	catch(cv::Exception excep){
-		std::cerr<<"error: couldn't write image to "<<outfilepath.native()<<std::endl;
-		std::cerr<<excep.what()<<std::endl;
+		spdlog::error("error: couldn't write image to "+outfilepath.native()+"\n{}",excep.what());
 		std::exit(EXIT_FAILURE);
 	}
-	std::cout<<"successfully written into "<<outfilepath.native()<<std::endl;
+	spdlog::info("successfully written into "+outfilepath.native());
 }
