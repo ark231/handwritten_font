@@ -10,6 +10,7 @@
 #include<filesystem>
 #include<vector>
 #include<spdlog/spdlog.h>
+#include<algorithm>
 
 #include"general/helpers.hpp"
 #include"image_utils.hpp"
@@ -18,20 +19,6 @@ namespace stdfsys=std::filesystem;
 
 void writeto_file(stdfsys::path outfilepath,cv::Mat);
 
-struct qr_code{
-	std::string data;
-	std::vector<cv::Point> vertice;
-	cv::Point center(){
-		cv::Point result(0,0);
-		for(const auto& vertex:vertice){
-			result.x+=vertex.x;
-			result.y+=vertex.y;
-		}
-		result.x/=4.0;
-		result.y/=4.0;
-		return result;
-	}
-};
 
 int main(int argc,char *argv[]){
 	bpo::options_description opt("option");
@@ -59,7 +46,7 @@ int main(int argc,char *argv[]){
 		std::exit(EXIT_SUCCESS);
 	}
 	if(!varmap.count("project_file")){
-		spdlog::error("error: not enough arguments");
+		spdlog::error("not enough arguments");
 		std::cout<<opt<<std::endl;
 		std::exit(EXIT_FAILURE);
 	}
@@ -84,7 +71,7 @@ int main(int argc,char *argv[]){
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
 		auto image = cv::imread(filepath.path().native());
 		if(image.empty()){
-			spdlog::error("error: couldn't load input image file "+filepath.path().native());
+			spdlog::error("couldn't load input image file "+filepath.path().native());
 			continue;
 		}
 		spdlog::info("successfully loaded input image "+filepath.path().native());
@@ -140,14 +127,15 @@ int main(int argc,char *argv[]){
 		cv::QRCodeDetector qr_detector;
 		std::vector<std::string> qr_infos;
 		std::vector<std::vector<cv::Point>> qr_vertices;// multi 'multi vertex'
-		std::vector<qr_code> qr_codes;
+		std::vector<handfont::qr_code> qr_codes;
+		std::vector<std::vector<handfont::side<handfont::localPoint>>> markers_sides;
 		spdlog::info("start detecting qr codes and corner marcers");
 		int counter_corner=0;
 		for(const auto& boundRect : boundRects){
 			cv::Mat qr_area(image_bin,boundRect);
 			cv::Mat qr_area_border(qr_area.rows+2*(5.0*dpmm),qr_area.cols+2*(5.0*dpmm),CV_8UC1);
 			cv::copyMakeBorder(qr_area,qr_area_border,5.0*dpmm,5.0*dpmm,5.0*dpmm,5.0*dpmm,cv::BORDER_CONSTANT,0xff);
-			qr_code code_tmp;
+			handfont::qr_code code_tmp;
 			code_tmp.data = qr_detector.detectAndDecode(qr_area_border,code_tmp.vertice);
 			if(code_tmp.vertice.size() == 4){
 				qr_codes.push_back(code_tmp);
@@ -178,7 +166,6 @@ int main(int argc,char *argv[]){
 			cv::findContours(corner_area_bin,corner_contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
 			std::vector<std::vector<cv::Point>> contours_poly;
 			contours_poly.reserve(contours.size());
-			std::vector<std::vector<handfont::side<handfont::localPoint>>> markers_sides;
 			markers_sides.reserve(contours.size());
 			cv::Point origin(boundRect.x,boundRect.y);
 			for(const auto& contour:corner_contours){
@@ -197,8 +184,8 @@ int main(int argc,char *argv[]){
 					}
 				}
 			}
-			///*
 			spdlog::debug("{} contours found",std::to_string(contours_poly.size()));
+			/*
 			for(size_t i =0;i<contours_poly.size();i++){
 				cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
 				cv::drawContours( corner_edge_color, contours_poly, (int)i, color,2);
@@ -211,12 +198,28 @@ int main(int argc,char *argv[]){
 			}
 			writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corner_edge"+std::to_string(counter_corner)+".png")),corner_edge_color);
 			counter_corner++;
-			//*/
+			*/
 		}
 		spdlog::debug("{} qr codes found",std::to_string(qr_codes.size()));
+		spdlog::debug("{} markers found",std::to_string(markers_sides.size()));
 		if(qr_codes.size() < 4){
-			spdlog::error("error: couldn't detect nor decode enough qr codes in the input image!");
+			spdlog::error("couldn't detect nor decode enough qr codes in the input image!");
 			continue;
+		}
+		if(markers_sides.size() < 4){
+			spdlog::error("couldn't detect enough corner markers in the input image!");
+			continue;
+		}
+		for(auto& marker: markers_sides){
+			std::sort(marker.begin(),marker.end());
+			try{
+				handfont::same_points(marker[3-1],marker[4-1]);
+			}
+			catch(std::runtime_error excep){
+				spdlog::error("couldn't find corner");
+				spdlog::debug(excep.what());
+				continue;
+			}
 		}
 		for(const auto& qr_code: qr_codes){
 			if(!qr_code.data.empty()){
@@ -234,7 +237,7 @@ void writeto_file(stdfsys::path outfilepath,cv::Mat image){
 		cv::imwrite(outfilepath.native(),image);
 	}
 	catch(cv::Exception excep){
-		spdlog::error("error: couldn't write image to "+outfilepath.native()+"\n{}",excep.what());
+		spdlog::error("couldn't write image to "+outfilepath.native()+"\n{}",excep.what());
 		std::exit(EXIT_FAILURE);
 	}
 	spdlog::info("successfully written into "+outfilepath.native());
