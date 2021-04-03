@@ -20,6 +20,16 @@ void writeto_file(stdfsys::path outfilepath,cv::Mat);
 struct qr_code{
 	std::string data;
 	std::vector<cv::Point> vertice;
+	cv::Point center(){
+		cv::Point result(0,0);
+		for(const auto& vertex:vertice){
+			result.x+=vertex.x;
+			result.y+=vertex.y;
+		}
+		result.x/=4.0;
+		result.y/=4.0;
+		return result;
+	}
 };
 
 int main(int argc,char *argv[]){
@@ -152,34 +162,51 @@ int main(int argc,char *argv[]){
 			writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corner_raw"+std::to_string(counter_corner)+".png")),corner_area);
 			writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corner"+std::to_string(counter_corner)+".png")),corner_area_bin);
 			*/
-			cv::Mat corner_edge = cv::Mat::zeros(corner_area_bin.size(),CV_8UC1);
+
+			//cv::Mat corner_edge = cv::Mat::zeros(corner_area_bin.size(),CV_8UC1);
+			cv::Mat corner_edge(image_blue,boundRect);
+			cv::Mat corner_edge_color;
+			cv::cvtColor(corner_edge,corner_edge_color,cv::COLOR_GRAY2BGR);
+
 			std::vector<std::vector<cv::Point>> corner_contours;
 			std::vector<cv::Vec4i> hierarchy;
 			cv::findContours(corner_area_bin,corner_contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
 			std::vector<std::vector<cv::Point>> contours_poly;
 			contours_poly.reserve(contours.size());
+			std::vector<std::vector<handfont::side<handfont::localPoint>>> markers_sides;
+			markers_sides.reserve(contours.size());
+			cv::Point origin(boundRect.x,boundRect.y);
 			for(const auto& contour:corner_contours){
 				std::vector<cv::Point> contour_poly;
 				cv::approxPolyDP( contour, contour_poly, cv::arcLength(contour,true)*(3/100.0), true );
 				if(10*dpmm*10*dpmm<cv::contourArea(contour_poly)&&cv::contourArea(contour_poly)<corner_edge.rows*corner_edge.cols*(90/100.0)){
-					if(contour_poly.size()==5){
+					if(contour_poly.size()==6){
 						contours_poly.push_back(contour_poly);
+						std::vector<handfont::side<handfont::localPoint>> marker_sides;
+						for(int i=0;i<6;i++){
+							handfont::localPoint start(contour_poly[i],origin);
+							handfont::localPoint end(contour_poly[(i+1)%6],origin);
+							marker_sides.push_back(handfont::side<handfont::localPoint>(start,end));
+						}
+						markers_sides.push_back(marker_sides);
 					}
 				}
 			}
+			///*
 			std::cout<<std::to_string(contours_poly.size())<<std::endl;
 			for(size_t i =0;i<contours_poly.size();i++){
 				cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
-				cv::drawContours( corner_edge, contours_poly, (int)i, color,2);
+				cv::drawContours( corner_edge_color, contours_poly, (int)i, color,2);
 				int counter_vertex=0;
 				for(const auto& vertex:contours_poly[i]){
-					cv::drawMarker(corner_edge,vertex,color,cv::MARKER_CROSS,3*dpmm,2);
-					cv::putText(corner_edge,std::to_string(counter_vertex),vertex,cv::FONT_HERSHEY_SIMPLEX,1,color);
+					cv::drawMarker(corner_edge_color,vertex,color,cv::MARKER_CROSS,3*dpmm,2);
+					cv::putText(corner_edge_color,std::to_string(counter_vertex),vertex,cv::FONT_HERSHEY_SIMPLEX,1,color);
 					counter_vertex++;
 				}
 			}
-			writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corner_edge"+std::to_string(counter_corner)+".png")),corner_edge);
+			writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corner_edge"+std::to_string(counter_corner)+".png")),corner_edge_color);
 			counter_corner++;
+			//*/
 		}
 		std::cout<<std::to_string(qr_codes.size())<<std::endl;
 		if(qr_codes.size() < 4){

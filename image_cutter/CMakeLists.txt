@@ -5,7 +5,7 @@ find_package(Boost 1.71 COMPONENTS program_options REQUIRED )
 #find_package(PkgConfig REQUIRED)
 find_package(OpenCV 4.3 COMPONENTS core imgcodecs highgui imgproc objdetect REQUIRED)
 
-add_executable(image_cutter image_cutter.cpp image_utils.cpp)
+add_executable(image_cutter image_cutter.cpp) #image_utils.cpp)
 target_include_directories(image_cutter PUBLIC ${Boost_INCLUDE_DIR} )
 target_include_directories(image_cutter PUBLIC ${handfont_libs_SOURCE_DIR})
 target_include_directories(image_cutter PUBLIC ${OpenCV_INCLUDE_DIR})
