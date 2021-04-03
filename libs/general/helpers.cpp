@@ -27,5 +27,5 @@ namespace handfont{
 		result = stdfsys::path(GetModuleFileName(nullptr,selfpath,MAX_PATH)).parent_path();
 #endif
 		return result;
-}
+	}
 }
