@@ -56,11 +56,34 @@ namespace handfont{
 		this->BL = tagged_corners["BL"];
 	}
 	bool write_area::is_valid(){
-		return !this->TL.code.data.empty();
+		return !this->TL.code.data.empty() && TL.code.data.substr(0,2) == "TL";
 	}
 	std::string write_area::get_TL_data(){
 		return TL.code.data;
 	}
-	void write_area::centerize_image(cv::Mat& res,cv::Mat& dest){
+	[[nodiscard]] cv::Mat write_area::centerize_image(cv::Mat& src){
+		auto dest_width = cv::norm(TR.point-TL.point);
+		auto dest_height = cv::norm(BR.point-TR.point);
+		std::array<cv::Point2f,4> src_vertice{
+			TL.point,
+			TR.point,
+			BR.point,
+			BL.point
+		};
+		std::array<cv::Point2f,4> dest_vertice{
+			cv::Point(0,0),
+			cv::Point(dest_width,0),
+			cv::Point(dest_width,dest_height),
+			cv::Point(0,dest_height)
+		};
+		cv::Mat dest_tmp(src.size(),CV_8UC1);
+		auto transform = cv::getPerspectiveTransform(src_vertice,dest_vertice);
+		cv::warpPerspective(src,dest_tmp,transform,dest_tmp.size());
+		return cv::Mat(dest_tmp,cv::Rect(0,0,dest_width,dest_height));
 	}
+#ifndef NDEBUG//デバッグモードで無いわけではない <=> デバッグモード
+		[[nodiscard]] std::vector<corner> write_area::get_corners(){
+			return std::vector<corner>{TL,TR,BR,BL};
+		}
+#endif
 }

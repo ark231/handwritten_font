@@ -13,7 +13,10 @@ namespace handfont{
 		write_area(std::vector<corner>);
 		bool is_valid();
 		std::string get_TL_data();
-		void centerize_image(cv::Mat&,cv::Mat&);
+		[[nodiscard]] cv::Mat centerize_image(cv::Mat&);
+#ifndef NDEBUG//デバッグモードで無いわけではない <=> デバッグモード
+		[[nodiscard]] std::vector<corner> get_corners();
+#endif
 	};
 }
 #endif
