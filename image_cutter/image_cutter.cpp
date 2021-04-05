@@ -1,7 +1,7 @@
 #include<opencv2/core.hpp>
 #include<opencv2/imgproc.hpp>
 #include<opencv2/imgcodecs.hpp>
-#include<opencv2/highgui.hpp>
+//#include<opencv2/highgui.hpp>
 #include<opencv2/imgproc.hpp>
 #include<opencv2/objdetect.hpp>
 #include<boost/program_options.hpp>
@@ -132,12 +132,19 @@ int main(int argc,char *argv[]){
 		spdlog::info("start detecting qr codes and corner marcers");
 		int counter_corner=0;
 		for(const auto& boundRect : boundRects){
+			cv::Point origin(boundRect.x,boundRect.y);
 			cv::Mat qr_area(image_bin,boundRect);
 			cv::Mat qr_area_border(qr_area.rows+2*(5.0*dpmm),qr_area.cols+2*(5.0*dpmm),CV_8UC1);
 			cv::copyMakeBorder(qr_area,qr_area_border,5.0*dpmm,5.0*dpmm,5.0*dpmm,5.0*dpmm,cv::BORDER_CONSTANT,0xff);
 			handfont::qr_code code_tmp;
-			code_tmp.data = qr_detector.detectAndDecode(qr_area_border,code_tmp.vertice);
-			if(code_tmp.vertice.size() == 4){
+			std::vector<cv::Point> code_vertice;
+			code_tmp.data = qr_detector.detectAndDecode(qr_area_border,code_vertice);
+			if(code_vertice.size() == 4){
+				std::vector<handfont::globalPoint> code_vertice_local;
+				for(const auto& vertex:code_vertice){
+					code_vertice_local.push_back((handfont::globalPoint)handfont::localPoint(vertex,origin));
+				}
+				code_tmp.vertice=code_vertice_local;
 				qr_codes.push_back(code_tmp);
 				continue;
 			}
@@ -167,7 +174,6 @@ int main(int argc,char *argv[]){
 			std::vector<std::vector<cv::Point>> contours_poly;
 			contours_poly.reserve(contours.size());
 			markers_sides.reserve(contours.size());
-			cv::Point origin(boundRect.x,boundRect.y);
 			for(const auto& contour:corner_contours){
 				std::vector<cv::Point> contour_poly;
 				cv::approxPolyDP( contour, contour_poly, cv::arcLength(contour,true)*(3/100.0), true );
@@ -210,22 +216,48 @@ int main(int argc,char *argv[]){
 			spdlog::error("couldn't detect enough corner markers in the input image!");
 			continue;
 		}
+		std::vector<handfont::corner> corners;
 		for(auto& marker: markers_sides){
+			//マーカーの辺を長さ順にソート
 			std::sort(marker.begin(),marker.end());
+			handfont::corner corner_tmp;
+			//3番目、四番目に長い辺の共有点を取得
 			try{
-				handfont::same_points(marker[3-1],marker[4-1]);
+				corner_tmp.point = (handfont::globalPoint)handfont::same_points(marker[3-1],marker[4-1]);
 			}
 			catch(std::runtime_error excep){
 				spdlog::error("couldn't find corner");
 				spdlog::debug(excep.what());
 				continue;
 			}
+			size_t closest_idx_qr;
+			double current_dist=-1.0;
+			//最も近いqrコードを取得
+			for(size_t idx_qr = 0;const auto& qr_code: qr_codes){
+				double new_dist = cv::norm(qr_code.center()-(cv::Point)corner_tmp.point);
+				if(current_dist < new_dist){
+					current_dist = new_dist;
+					closest_idx_qr = idx_qr;
+				}
+				idx_qr++;
+			}
+			//確定したqrコードは候補から外す
+			corner_tmp.code = qr_codes[closest_idx_qr];
+			qr_codes.erase(qr_codes.begin()+closest_idx_qr);
+			corners.push_back(corner_tmp);
 		}
+		handfont::write_area write_handler(corners);
+		if(!write_handler.is_valid()){
+			spdlog::error("couldn't decode TL qr code");
+		}
+		spdlog::debug(write_handler.get_TL_data());
+		/*
 		for(const auto& qr_code: qr_codes){
 			if(!qr_code.data.empty()){
 				spdlog::debug(qr_code.data);
 			}
 		}
+		*/
 		//writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_blue_edge.png")),result);
 
 	}
