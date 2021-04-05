@@ -3,10 +3,24 @@ project(handfont_image_cutter CXX)
 find_package(Boost 1.71 COMPONENTS program_options REQUIRED )
 #find_package(ICU 61.0 COMPONENTS uc REQUIRED)
 find_package(PkgConfig REQUIRED)
-find_package(OpenCV 4.3 COMPONENTS core imgcodecs highgui imgproc objdetect REQUIRED)
+find_package(OpenCV 4.3 COMPONENTS 
+	core 
+	imgcodecs 
+	#highgui 
+	imgproc 
+	objdetect 
+	REQUIRED)
 pkg_check_modules(spdlog spdlog REQUIRED)
 
-add_executable(image_cutter image_cutter.cpp image_utils.cpp corner.cpp points.cpp qr_codes.cpp write_area.cpp)
+add_executable(image_cutter 
+	image_cutter.cpp 
+	image_utils.cpp 
+	corner.cpp 
+	points.cpp 
+	qr_codes.cpp 
+	write_area.cpp
+	sides.cpp
+	)
 target_include_directories(image_cutter PUBLIC ${Boost_INCLUDE_DIR} )
 target_include_directories(image_cutter PUBLIC ${handfont_libs_SOURCE_DIR})
 target_include_directories(image_cutter PUBLIC ${OpenCV_INCLUDE_DIR})
@@ -17,3 +31,4 @@ target_link_libraries(image_cutter PUBLIC ${OpenCV_LIBRARIES})
 target_link_libraries(image_cutter PUBLIC ${spdlog_LIBRARIES})
 target_compile_options(image_cutter PUBLIC $<IF:$<CONFIG:Debug>,-g3 -O0,>)
 target_compile_options(image_cutter PUBLIC -Wall -Wextra )
+target_compile_features(image_cutter PUBLIC cxx_std_20)
