@@ -11,6 +11,7 @@
 #include<vector>
 #include<spdlog/spdlog.h>
 #include<algorithm>
+#include<limits>
 
 #include"general/helpers.hpp"
 #include"image_utils.hpp"
@@ -117,7 +118,7 @@ int main(int argc,char *argv[]){
 		}
 
 		//cv::Mat result = cv::Mat::zeros(image_edge.size(),CV_8UC3);
-		cv::RNG rng(12345);
+		//cv::RNG rng(12345);
 		/*
 		for( size_t i = 0; i< contours.size(); i++ ) {
 			cv::Scalar color = cv::Scalar(rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256));
@@ -231,11 +232,11 @@ int main(int argc,char *argv[]){
 				continue;
 			}
 			size_t closest_idx_qr;
-			double current_dist=-1.0;
+			double current_dist=std::numeric_limits<double>::infinity();//無効である値かつどんな有効な値よりも「大きい」
 			//最も近いqrコードを取得
 			for(size_t idx_qr = 0;const auto& qr_code: qr_codes){
 				double new_dist = cv::norm(qr_code.center()-(cv::Point)corner_tmp.point);
-				if(current_dist < new_dist){
+				if(current_dist > new_dist){//近い<=>距離が小さい!!!
 					current_dist = new_dist;
 					closest_idx_qr = idx_qr;
 				}
@@ -251,6 +252,23 @@ int main(int argc,char *argv[]){
 			spdlog::error("couldn't decode TL qr code");
 		}
 		spdlog::debug(write_handler.get_TL_data());
+#ifndef NDEBUG
+		spdlog::debug("start drawing markers for debugging");
+		cv::Mat result;
+		cv::cvtColor(image_blue,result,cv::COLOR_GRAY2BGR);
+		cv::RNG rng(12345);
+		std::vector<std::string> names{"TL","TR","BR","BL"};
+		auto name = names.begin();
+		for(const auto& corner : write_handler.get_corners()){
+			cv::Scalar color = cv::Scalar( rng.uniform(0, 256), rng.uniform(0,256), rng.uniform(0,256) );
+			cv::drawMarker(result,corner.point,color,cv::MARKER_CROSS,3*dpmm,2);
+			cv::putText(result,*name +":"+ corner.code.data.substr(0,2),corner.point,cv::FONT_HERSHEY_SIMPLEX,10,color);
+			name++;
+		}
+		writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corners.png")),result);
+#endif
+		auto image_write_area = write_handler.centerize_image(image_blue);
+		writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_write_area.png")),image_write_area);
 		/*
 		for(const auto& qr_code: qr_codes){
 			if(!qr_code.data.empty()){
