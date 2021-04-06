@@ -12,8 +12,10 @@
 #include<spdlog/spdlog.h>
 #include<algorithm>
 #include<limits>
+#include<regex>
 
 #include"general/helpers.hpp"
+#include"chardef/parse_chardef.hpp"
 #include"image_utils.hpp"
 namespace bpo=boost::program_options;
 namespace stdfsys=std::filesystem;
@@ -252,6 +254,7 @@ int main(int argc,char *argv[]){
 			spdlog::error("couldn't decode TL qr code");
 		}
 		spdlog::debug(write_handler.get_TL_data());
+		/*
 #ifndef NDEBUG
 		spdlog::debug("start drawing markers for debugging");
 		cv::Mat result;
@@ -267,8 +270,59 @@ int main(int argc,char *argv[]){
 		}
 		writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corners.png")),result);
 #endif
+*/
+		/*
 		auto image_write_area = write_handler.centerize_image(image_blue);
 		writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_write_area.png")),image_write_area);
+		*/
+		std::smatch match_filecode;
+		auto TL_data = write_handler.get_TL_data();
+		std::regex_search(TL_data,match_filecode,std::regex("[SL][MP]_[0-9]+"));
+		handfont::chardef_filemeta filemeta(match_filecode.str(),file_rootdir);
+		handfont::chardef_data chardef;
+		chardef.parse_chardef(filemeta);
+		int num_internal_cols;
+		int num_internal_rows;
+		if(chardef.size == handfont::grid_size::SMALL){
+			num_internal_cols=24*2;//48
+			if(chardef.is_Fixed_Base){
+				num_internal_rows=((30/2)/5)*4;//12
+			}else{
+				num_internal_rows=30/2;//15
+			}
+		}else if(chardef.size == handfont::grid_size::LARGE){
+			num_internal_cols=24;
+			if(chardef.is_Fixed_Base){
+				num_internal_rows=((30-30%4)/4);//7
+			}else{
+				num_internal_rows=30/3;//10
+			}
+		}
+		double width_internal_grid = image_write_area.cols/(double)num_internal_cols;
+		double height_internal_grid = image_write_area.rows/(double)num_internal_rows;
+		std::vector<cv::Rect> internal_grids;
+		internal_grids.reserve(num_internal_cols*num_internal_rows);
+		for(size_t row=0;row < num_internal_rows;row++){
+			for(size_t col=0;col < num_internal_cols;col++){
+				internal_grids.push_back(cv::Rect(
+							//width_internal_grid*col,
+							(image_write_area.cols*col)/(double)num_internal_cols,
+							//height_internal_grid*row,
+							(image_write_area.rows*row)/(double)num_internal_rows,
+							width_internal_grid,
+							height_internal_grid
+							));
+			}
+		}
+		auto cache_dir = filemeta.dir_order(project_dir/".cache");
+		if(!stdfsys::exists(cache_dir)){
+			stdfsys::create_directories(cache_dir);
+		}
+		auto internal_grid = internal_grids.begin();
+		for(int i=0;i<internal_grids.size();i++){
+			writeto_file((cache_dir/(filepath.path().filename().native()+"_internal_grid_"+std::to_string(i)+".png")),cv::Mat(image_write_area,*internal_grid));
+			internal_grid++;
+		}
 		/*
 		for(const auto& qr_code: qr_codes){
 			if(!qr_code.data.empty()){
