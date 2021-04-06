@@ -9,7 +9,6 @@
 #include"chardef_filemeta.hpp"
 #include"chardef_convert_consts.hpp"
 #include"general/helpers.hpp"
-namespace stdfsys=std::filesystem;
 namespace handfont{
 	stdfsys::path chardef_dirorder(std::string rootdir,grid_size size,font_type type){
 		stdfsys::path dirpath_size,dirpath_type,filename_path;
@@ -119,5 +118,8 @@ namespace handfont{
 		code_file_id<<std::setw(4)<<std::setfill('0')<<std::hex<<file_id;
 		result+="_"+code_file_id.str();
 		return result;
+	}
+	stdfsys::path chardef_filemeta::dir_order(std::string rootdir){
+		return chardef_dirorder(rootdir,this->size,this->type);
 	}
 }
