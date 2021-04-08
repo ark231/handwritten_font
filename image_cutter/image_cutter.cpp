@@ -271,10 +271,11 @@ int main(int argc,char *argv[]){
 		writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_corners.png")),result);
 #endif
 */
-		/*
 		auto image_write_area = write_handler.centerize_image(image_blue);
+		/*
 		writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_write_area.png")),image_write_area);
 		*/
+		spdlog::info("start cutting off characters");
 		std::smatch match_filecode;
 		auto TL_data = write_handler.get_TL_data();
 		std::regex_search(TL_data,match_filecode,std::regex("[SL][MP]_[0-9]+"));
@@ -283,21 +284,27 @@ int main(int argc,char *argv[]){
 		chardef.parse_chardef(filemeta);
 		int num_internal_cols;
 		int num_internal_rows;
+		double write_grid_ratio;
 		if(chardef.size == handfont::grid_size::SMALL){
 			num_internal_cols=24*2;//48
 			if(chardef.is_Fixed_Base){
 				num_internal_rows=((30/2)/5)*4;//12
+				write_grid_ratio=(3/5.0);
 			}else{
 				num_internal_rows=30/2;//15
+				write_grid_ratio=(1/2.0);
 			}
 		}else if(chardef.size == handfont::grid_size::LARGE){
 			num_internal_cols=24;
 			if(chardef.is_Fixed_Base){
 				num_internal_rows=((30-30%4)/4);//7
+				write_grid_ratio=(3/4.0);
 			}else{
 				num_internal_rows=30/3;//10
+				write_grid_ratio=(2/3.0);
 			}
 		}
+		spdlog::debug("start making internal grids");
 		double width_internal_grid = image_write_area.cols/(double)num_internal_cols;
 		double height_internal_grid = image_write_area.rows/(double)num_internal_rows;
 		std::vector<cv::Rect> internal_grids;
@@ -318,10 +325,65 @@ int main(int argc,char *argv[]){
 		if(!stdfsys::exists(cache_dir)){
 			stdfsys::create_directories(cache_dir);
 		}
+		/*
 		auto internal_grid = internal_grids.begin();
 		for(int i=0;i<internal_grids.size();i++){
 			writeto_file((cache_dir/(filepath.path().filename().native()+"_internal_grid_"+std::to_string(i)+".png")),cv::Mat(image_write_area,*internal_grid));
 			internal_grid++;
+		}
+		*/
+		spdlog::debug("start processing internal grids");
+		double constexpr em = 1024;
+		//double constexpr em_per_inch = (1.0*handfont::inch_per_mm)/(7.0/em);
+		//double constexpr em_per_inch = (em/7.0)*handfont::mm_per_inch;
+		double em_per_mm;
+		if(chardef.size == handfont::grid_size::SMALL){
+			em_per_mm = (em/7.0);
+		}else if(chardef.size == handfont::grid_size::LARGE){
+			em_per_mm = (em/14.0);
+		}
+		spdlog::debug("{}em/mm",em_per_mm);
+		std::cout<<em_per_mm<<"em/mm"<<std::endl;
+		auto internal_grid = internal_grids.begin();
+		for(const auto& char_info : chardef.char_infos){
+			cv::Rect unified_grid;
+			if(char_info.width == handfont::char_width::HALF){
+				unified_grid = *internal_grid;
+				internal_grid++;
+			}else if(char_info.width == handfont::char_width::FULL){
+				if(std::distance(internal_grids.begin(),internal_grid)%num_internal_cols == num_internal_cols-1){
+					internal_grid++;//端が余ったら飛ばす
+				}
+				unified_grid = *internal_grid | *(internal_grid+1);
+				internal_grid += 2;
+			}
+			cv::Mat image_unified_grid(image_write_area,unified_grid);
+			cv::Rect info_grid(0,0,unified_grid.width,unified_grid.height*(1-write_grid_ratio));
+			cv::Rect write_grid(
+					0,
+					unified_grid.height*write_grid_ratio,
+					unified_grid.width,
+					unified_grid.height*write_grid_ratio
+					);
+			cv::Mat image_info_grid(image_unified_grid,info_grid);
+			cv::Mat image_write_grid(image_unified_grid,write_grid);
+			cv::Mat image_write_grid_resized(image_unified_grid,write_grid);
+			cv::resize(image_write_grid,image_write_grid_resized,cv::Size(),(em_per_mm/dpmm),(em_per_mm/dpmm),cv::INTER_CUBIC);
+			cv::Mat image_write_grid_bin(image_write_grid_resized.size(),CV_8UC1);
+			cv::threshold(image_write_grid,image_write_grid_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
+			//かすれ除去
+			spdlog::debug("start unti-noise processes");
+			cv::Mat image_write_grid_closed(image_write_area.rows,image_write_area.cols,CV_8UC1);
+			auto element = cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(5,5));
+			cv::morphologyEx(image_write_grid_bin,image_write_grid_closed,cv::MORPH_CLOSE,element);
+			cv::Mat image_write_grid_opened(image_write_area.rows,image_write_area.cols,CV_8UC1);
+			element = cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(10,10));
+			cv::morphologyEx(image_write_grid_closed,image_write_grid_opened,cv::MORPH_OPEN,element);
+			cv::Mat result = image_write_grid_opened;
+			/* 
+			 * 代替文字、不使用指定などを検知する処理を後で追加する 
+			 */
+			writeto_file((cache_dir/(handfont::to_hex(char_info.character,4,'0')+".png")),result);
 		}
 		/*
 		for(const auto& qr_code: qr_codes){

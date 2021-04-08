@@ -24,7 +24,8 @@ namespace handfont{
 
 	using dpmm=double;
 	using dpi=double;
-	double constexpr inch_per_mm= 1/25.4;
+	double constexpr mm_per_inch = 25.4;
+	double constexpr inch_per_mm = 1/mm_per_inch;
 	dpmm dpi_to_dpmm(dpi input_dpi);
 	enum class close_type{
 		REL,//2つの差が、最初の引数に三番目の引数を掛けたもの未満かを判定
