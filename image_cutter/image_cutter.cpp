@@ -368,7 +368,11 @@ int main(int argc,char *argv[]){
 			cv::Mat image_info_grid(image_unified_grid,info_grid);
 			cv::Mat image_write_grid(image_unified_grid,write_grid);
 			cv::Mat image_write_grid_resized(image_unified_grid,write_grid);
-			cv::resize(image_write_grid,image_write_grid_resized,cv::Size(),(em_per_mm/dpmm),(em_per_mm/dpmm),cv::INTER_CUBIC);
+			if(em_per_mm>dpmm){
+				cv::resize(image_write_grid,image_write_grid_resized,cv::Size(),(em_per_mm/dpmm),(em_per_mm/dpmm),cv::INTER_CUBIC);
+			}else{
+				image_write_grid_resized=image_write_grid;
+			}
 			cv::Mat image_write_grid_bin(image_write_grid_resized.size(),CV_8UC1);
 			cv::threshold(image_write_grid,image_write_grid_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
 			//かすれ除去
