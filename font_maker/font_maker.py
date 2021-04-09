@@ -7,16 +7,24 @@ import argparse
 import pathlib
 import re
 import toml
+from logging import getLogger,StreamHandler,DEBUG,Formatter
 
 def main():
     parser=argparse.ArgumentParser(description="make font from svg files",prog="font_maker")
     #parser.add_argument("width",type=int,help="width of output picture")
     #parser.add_argument("height",type=int,help="height of output picture")
     parser.add_argument("-p","--project_file",metavar="PFILE",type=str,help="project file path",required = True)
+    parser.add_argument("-b","--debug",action="store_true",help="debug output")
     args=parser.parse_args()
     project_filedata = toml.load(open(args.project_file))
     project_path = pathlib.Path(args.project_file).resolve().parent
-    #print(project_path)
+    logger = getLogger("font_maker")
+    handler = StreamHandler()
+    handler.setFormatter(Formatter("[%(asctime)s] [%(levelname)s] %(message)s"))
+    if args.debug:
+        logger.setLevel(DEBUG)
+    logger.addHandler(handler)
+    logger.propagate = False
     for dirpath in (project_path/".cache").glob("*/*"):
         result = defcon.Font()
         result.info.familyName = project_filedata["fontname"]
@@ -58,20 +66,26 @@ def main():
             #print(str(code_point))
             #print(int(str(code_point),16))
             #print(chr(int(str(code_point),16)))
+            logger.debug('{code}: "{char}"'.format(code = str(code_point),char = chr(int(str(code_point),16))))
             glyph = result.newGlyph("U+"+str(code_point))
             glyph.unicode = int(str(code_point),16)
             glyph.width = round(UPE/2)
             pen = glyph.getPen()
-            svg_data = SVGPath(str(filename))
+            svg_data = SVGPath(str(filename),(1,0,0,1,0,descender))
             svg_data.draw(pen)
+        logger.info("start compiling otf")
         result_otf = ufo2ft.compileOTF(result)
+        logger.info("start compiling ttf")
         result_ttf = ufo2ft.compileTTF(result)
+        logger.info("finish compiling")
         file_name = "{filename}-{stylename}".format(
             filename = project_filedata["fontname"],
             stylename = result.info.styleName
             )
-        result_otf.save(str(dirpath/"output"/(file_name+".otf")))
-        result_ttf.save(str(dirpath/"output"/(file_name+".otf")))
+        logger.info("start saving otf")
+        result_otf.save(str(project_path/"output"/(file_name+".otf")))
+        logger.info("start saving ttf")
+        result_ttf.save(str(project_path/"output"/(file_name+".ttf")))
 
 
 
