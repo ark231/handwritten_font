@@ -1,0 +1,11 @@
+testkey1 = "testval1"
+testkey2 = "testkey2"
+testkey3 = "testkey3"
+[testtable1]
+t1k1 = "t1v1"
+t1k2 = "t1v2"
+t1k3 = "t1v3"
+[testtable2]
+t2k1 = "t2v1"
+t2k2 = "t2v2"
+t2k3 = "t2v3"

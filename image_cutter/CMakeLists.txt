@@ -23,6 +23,7 @@ add_executable(image_cutter
 	)
 target_include_directories(image_cutter PUBLIC ${Boost_INCLUDE_DIR} )
 target_include_directories(image_cutter PUBLIC ${handfont_libs_SOURCE_DIR})
+target_include_directories(image_cutter PUBLIC ${handfont_SOURCE_DIR}/toml11)
 target_include_directories(image_cutter PUBLIC ${OpenCV_INCLUDE_DIR})
 target_link_libraries(image_cutter LINK_PUBLIC ${Boost_LIBRARIES} )
 target_link_libraries(image_cutter PUBLIC parse_chardef chardef_filemeta chardef_cvt_consts helpers)

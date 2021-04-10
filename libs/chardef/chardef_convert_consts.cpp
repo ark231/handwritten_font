@@ -27,6 +27,24 @@ namespace handfont{
 		}
 		return result;
 	}
+	std::string to_string(const guide_type type){
+		std::string result;
+		switch(type){
+			case guide_type::NONE:
+				result = "none";
+				break;
+			case guide_type::LATIN:
+				result = "latin";
+				break;
+			case guide_type::CROSS:
+				result = "cross";
+				break;
+			case guide_type::LOWER_LATIN:
+				result = "lower_latin";
+				break;
+		}
+		return result;
+	}
 	grid_size to_grid_size(const std::string input){
 		grid_size result;
 		if(input == "small"){

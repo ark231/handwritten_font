@@ -13,9 +13,14 @@
 #include<algorithm>
 #include<limits>
 #include<regex>
+#include<toml.hpp>
+#include<fstream>
+#include<iomanip>
+#include<stdexcept>
 
 #include"general/helpers.hpp"
 #include"chardef/parse_chardef.hpp"
+#include"chardef/chardef_convert_consts.hpp"
 #include"image_utils.hpp"
 namespace bpo=boost::program_options;
 namespace stdfsys=std::filesystem;
@@ -322,41 +327,58 @@ int main(int argc,char *argv[]){
 			}
 		}
 		auto cache_dir = filemeta.dir_order(project_dir/".cache");
+		toml::value metadata;
 		if(!stdfsys::exists(cache_dir)){
 			stdfsys::create_directories(cache_dir);
 		}
-		/*
-		auto internal_grid = internal_grids.begin();
-		for(int i=0;i<internal_grids.size();i++){
-			writeto_file((cache_dir/(filepath.path().filename().native()+"_internal_grid_"+std::to_string(i)+".png")),cv::Mat(image_write_area,*internal_grid));
-			internal_grid++;
+		auto metafile_path = cache_dir/".metadata.toml";
+		if(stdfsys::exists(metafile_path)){
+			metadata = toml::parse(metafile_path.native());
 		}
-		*/
+		for(const auto& key:{"general","chars","alters"}){
+			try{
+				toml::find(metadata,key);
+			}
+			catch(std::exception){
+				metadata[key] = toml::value();
+			}
+		}
+		std::ofstream metafile_stream;
+		metafile_stream.open(metafile_path);
+		if(!metafile_stream){
+			spdlog::error("couldn't open metafile: "+metafile_path.native());
+			exit(EXIT_FAILURE);
+		}
+		metadata["general"]["is_Fixed_Base"] = chardef.is_Fixed_Base;
 		spdlog::debug("start processing internal grids");
-		double constexpr em = 1024;
-		//double constexpr em_per_inch = (1.0*handfont::inch_per_mm)/(7.0/em);
-		//double constexpr em_per_inch = (em/7.0)*handfont::mm_per_inch;
-		double em_per_mm;
+		double constexpr units_per_em = 1024;
+		//double constexpr units_per_em_per_inch = (1.0*handfont::inch_per_mm)/(7.0/units_per_em);
+		//double constexpr units_per_em_per_inch = (units_per_em/7.0)*handfont::mm_per_inch;
+		double units_per_mm;
 		if(chardef.size == handfont::grid_size::SMALL){
-			em_per_mm = (em/7.0);
+			units_per_mm = (units_per_em/7.0);
 		}else if(chardef.size == handfont::grid_size::LARGE){
-			em_per_mm = (em/14.0);
+			units_per_mm = (units_per_em/14.0);
 		}
-		spdlog::debug("{}em/mm",em_per_mm);
-		std::cout<<em_per_mm<<"em/mm"<<std::endl;
+		spdlog::debug("{}units/mm",units_per_mm);
+		std::cout<<units_per_mm<<"units/mm"<<std::endl;
 		auto internal_grid = internal_grids.begin();
 		for(const auto& char_info : chardef.char_infos){
 			cv::Rect unified_grid;
+			auto code_point = handfont::to_hex(char_info.character,4,'0');
 			if(char_info.width == handfont::char_width::HALF){
 				unified_grid = *internal_grid;
 				internal_grid++;
+				metadata["chars"]["U+"+code_point]["width"] = "HALF";
 			}else if(char_info.width == handfont::char_width::FULL){
 				if(std::distance(internal_grids.begin(),internal_grid)%num_internal_cols == num_internal_cols-1){
 					internal_grid++;//端が余ったら飛ばす
 				}
 				unified_grid = *internal_grid | *(internal_grid+1);
 				internal_grid += 2;
+				metadata["chars"][code_point]["width"] = "FULL";
 			}
+			metadata["chars"][code_point]["guide_type"] = handfont::to_string(char_info.g_type);
 			cv::Mat image_unified_grid(image_write_area,unified_grid);
 			cv::Rect info_grid(0,0,unified_grid.width,unified_grid.height*(1-write_grid_ratio));
 			cv::Rect write_grid(
@@ -368,16 +390,16 @@ int main(int argc,char *argv[]){
 			cv::Mat image_info_grid(image_unified_grid,info_grid);
 			cv::Mat image_write_grid(image_unified_grid,write_grid);
 			cv::Mat image_write_grid_resized(image_unified_grid,write_grid);
-			if(em_per_mm>dpmm){
-				cv::resize(image_write_grid,image_write_grid_resized,cv::Size(),(em_per_mm/dpmm),(em_per_mm/dpmm),cv::INTER_CUBIC);
+			if(units_per_mm>dpmm){
+				cv::resize(image_write_grid,image_write_grid_resized,cv::Size(),(units_per_mm/dpmm),(units_per_mm/dpmm),cv::INTER_CUBIC);
 			}else{
 				image_write_grid_resized=image_write_grid;
 			}
 			cv::Mat image_write_grid_bin(image_write_grid_resized.size(),CV_8UC1);
-			cv::threshold(image_write_grid,image_write_grid_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
+			cv::threshold(image_write_grid_resized,image_write_grid_bin,0,0xff,cv::THRESH_BINARY|cv::THRESH_OTSU);
 			//かすれ除去
 			spdlog::debug("start unti-noise processes");
-			cv::Mat image_write_grid_closed(image_write_area.rows,image_write_area.cols,CV_8UC1);
+			cv::Mat image_write_grid_closed(image_write_grid_bin.size(),CV_8UC1);
 			auto element = cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(5,5));
 			cv::morphologyEx(image_write_grid_bin,image_write_grid_closed,cv::MORPH_CLOSE,element);
 			cv::Mat image_write_grid_opened(image_write_area.rows,image_write_area.cols,CV_8UC1);
@@ -389,6 +411,7 @@ int main(int argc,char *argv[]){
 			 */
 			writeto_file((cache_dir/(handfont::to_hex(char_info.character,4,'0')+".png")),result);
 		}
+		metafile_stream<<std::setw(80)<<metadata;
 		/*
 		for(const auto& qr_code: qr_codes){
 			if(!qr_code.data.empty()){
@@ -397,7 +420,6 @@ int main(int argc,char *argv[]){
 		}
 		*/
 		//writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_blue_edge.png")),result);
-
 	}
 	return 0;
 }
