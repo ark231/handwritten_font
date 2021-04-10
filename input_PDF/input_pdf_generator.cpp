@@ -75,7 +75,7 @@ namespace handfont{
 			result_height*=3/2.0;
 		}
 		HPDF_Page_GSave(current_page);
-		HPDF_Page_SetRGBStroke(current_page,0.7,0.9,1.0);
+		HPDF_Page_SetRGBStroke(current_page,grid_color::R,grid_color::G,grid_color::B);
 		HPDF_Page_Rectangle(current_page,BL_x,BL_y,grid_width,grid_height);
 		HPDF_Page_Stroke(current_page);
 		HPDF_Page_SetLineWidth(current_page,0.5);
@@ -131,9 +131,9 @@ namespace handfont{
 				break;
 		}
 		HPDF_Page_GSave(current_page);
-		HPDF_Page_SetRGBStroke(current_page,0.7,0.9,1.0);
+		HPDF_Page_SetRGBStroke(current_page,grid_color::R,grid_color::G,grid_color::B);
 		if(has_alter){
-			HPDF_Page_SetRGBFill(current_page,0.9,1.0,1.0);
+			HPDF_Page_SetRGBFill(current_page,fill_color::R,fill_color::G,fill_color::B);
 			HPDF_Page_Rectangle(current_page,BL_x,BL_y,grid_width,grid_height);
 			HPDF_Page_FillStroke(current_page);
 		}else{

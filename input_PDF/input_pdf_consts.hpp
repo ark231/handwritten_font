@@ -19,6 +19,16 @@ namespace handfont{
 	mm constexpr font_size_alter = 1.0;
 	mm constexpr marker_width_mm = 5.0;
 	mm constexpr marker_length_mm = 14.0;
+	namespace grid_color{
+		double constexpr R = 0.9;
+		double constexpr G = 1.0;
+		double constexpr B = 1.0;
+	}
+	namespace fill_color{
+		double constexpr R = 0.9;
+		double constexpr G = 1.0;
+		double constexpr B = 1.0;
+	}
 	enum class corner_rotation{
 		BL = 0,
 		BR,
