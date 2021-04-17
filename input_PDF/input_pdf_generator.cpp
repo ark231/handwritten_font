@@ -210,10 +210,12 @@ namespace handfont{
 		HPDF_SetCurrentEncoder(pdf,"UTF-8");
 		HPDF_SetCompressionMode(pdf,HPDF_COMP_METADATA|HPDF_COMP_IMAGE);
 		font_name=fontname;
+		/*
 		std::string qr_places[] = {"TL","TR","BL","BR"};
 		for(int i = 1;i<4;i++){
 			qr_codes[qr_places[i]] = generate_qr_code(qr_places[i].c_str());
 		}
+		*/
 	}
 
 	void input_pdf_generator::add_page(chardef_filemeta filemeta){
@@ -223,9 +225,11 @@ namespace handfont{
 		HPDF_Page_SetSize(current_page, HPDF_PAGE_SIZE_A4,HPDF_PAGE_PORTRAIT);
 		chardef_data data;
 		data.parse_chardef(filemeta);
-		std::string qr_info_tmp="";
-		qr_info_tmp = "TL_Handfont_"+filemeta.get_filecode()+"_"+font_name;
-		qr_codes["TL"]= generate_qr_code(qr_info_tmp.c_str());
+		std::string qr_info_tmp = "_Handfont_"+filemeta.get_filecode()+"_"+font_name;
+		std::string qr_places[] = {"TL","TR","BL","BR"};
+		for(const auto& qr_place : qr_places){
+			qr_codes[qr_place]= generate_qr_code((qr_place+qr_info_tmp).c_str());
+		}
 		px constexpr qr_offset=mm_to_px(5.0);
 		//px constexpr qr_size=mm_to_px(20.0);
 		//px constexpr qr_size_TL=mm_to_px(40.0);

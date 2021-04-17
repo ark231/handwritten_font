@@ -56,10 +56,42 @@ namespace handfont{
 		this->BL = tagged_corners["BL"];
 	}
 	bool write_area::is_valid(){
-		return !this->TL.code.data.empty() && TL.code.data.substr(0,2) == "TL";
+		if(!this->TL.code.data.empty() 
+			&& TL.code.data.substr(0,2) == "TL"
+			&& TL.code.data.length()>2
+			){
+			return true;
+		}else if(!this->TR.code.data.empty() 
+				&& TR.code.data.substr(0,2) == "TR"
+				&& TR.code.data.length()>2
+				){
+			return true;
+		}else if(!this->BR.code.data.empty() 
+				&& BR.code.data.substr(0,2) == "BR"
+				&& BR.code.data.length()>2
+				){
+			return true;
+		}else if(!this->BL.code.data.empty() 
+				&& BL.code.data.substr(0,2) == "BL"
+				&& BL.code.data.length()>2
+				){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	std::string write_area::get_TL_data(){
-		return TL.code.data;
+		if(!TL.code.data.empty()){
+			return TL.code.data;
+		}else if(!TR.code.data.empty()){
+			return TR.code.data;
+		}else if(!BR.code.data.empty()){
+			return BR.code.data;
+		}else if(!BL.code.data.empty()){
+			return BL.code.data;
+		}else{
+			return "";
+		}
 	}
 	[[nodiscard]] cv::Mat write_area::centerize_image(cv::Mat& src){
 		auto dest_width = cv::norm(TR.point-TL.point);
