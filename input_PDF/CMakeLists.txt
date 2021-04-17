@@ -6,7 +6,11 @@ pkg_check_modules(QRencode libqrencode REQUIRED)
 find_library(HPDF libhpdf.so)
 find_package(ICU 61.0 COMPONENTS uc REQUIRED)
 
-add_executable(gen_input_pdf generator.cpp input_pdf_generator.cpp)
+add_executable(
+	gen_input_pdf 
+	generator.cpp 
+	input_pdf_generator.cpp
+	)
 target_include_directories(gen_input_pdf PUBLIC ${Boost_INCLUDE_DIR} )
 #target_include_directories(gen_input_pdf PUBLIC ${handfont_chardef_libs_SOURCE_DIR})
 #target_include_directories(gen_input_pdf PUBLIC ${handfont_general_libs_SOURCE_DIR})
