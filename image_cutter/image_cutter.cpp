@@ -21,7 +21,8 @@
 #include"general/helpers.hpp"
 #include"chardef/parse_chardef.hpp"
 #include"chardef/chardef_convert_consts.hpp"
-#include"image_utils.hpp"
+#include"image_includes.hpp"
+#include"read_metadata.hpp"
 namespace bpo=boost::program_options;
 namespace stdfsys=std::filesystem;
 
@@ -63,8 +64,8 @@ int main(int argc,char *argv[]){
 	}
 	auto file_rootdir = varmap["chardef_dir"].as<std::string>();
 	auto project_filepath = stdfsys::path(varmap["project_file"].as<std::string>());
-	auto dpmm = handfont::dpi_to_dpmm(varmap["dpi"].as<handfont::dpi>());
-	auto block_size = 1.0*dpmm;
+	//auto dpmm = handfont::dpi_to_dpmm(varmap["dpi"].as<handfont::dpi>());
+	//auto block_size = 1.0*dpmm;
 	//for experiment
 	//auto block_size = varmap["block_size"].as<int>();
 	//auto constant = varmap["constant"].as<int>();
@@ -77,6 +78,10 @@ int main(int argc,char *argv[]){
 
 	auto project_dir = project_filepath.parent_path();
 	for(const auto& filepath : stdfsys::directory_iterator(project_dir/"input")){
+		handfont::image_metadata input_meta(filepath.path());
+		auto dpmm = input_meta.get_dpmm();
+		spdlog::debug(dpmm);
+		auto block_size = 1.0*dpmm;
 		auto image = cv::imread(filepath.path().native());
 		if(image.empty()){
 			spdlog::error("couldn't load input image file "+filepath.path().native());
@@ -139,9 +144,13 @@ int main(int argc,char *argv[]){
 		std::vector<std::vector<handfont::side<handfont::localPoint>>> markers_sides;
 		spdlog::info("start detecting qr codes and corner marcers");
 		int counter_corner=0;
+		int counter_qr=0;
 		for(const auto& boundRect : boundRects){
 			cv::Point origin(boundRect.x,boundRect.y);
 			cv::Mat qr_area(image_bin,boundRect);
+
+			writeto_file((project_dir/"output"/(filepath.path().filename().native()+"_qr_area"+std::to_string(counter_qr)+".png")),qr_area);
+
 			cv::Mat qr_area_border(qr_area.rows+2*(5.0*dpmm),qr_area.cols+2*(5.0*dpmm),CV_8UC1);
 			cv::copyMakeBorder(qr_area,qr_area_border,5.0*dpmm,5.0*dpmm,5.0*dpmm,5.0*dpmm,cv::BORDER_CONSTANT,0xff);
 			handfont::qr_code code_tmp;
@@ -154,6 +163,7 @@ int main(int argc,char *argv[]){
 				}
 				code_tmp.vertice=code_vertice_local;
 				qr_codes.push_back(code_tmp);
+				counter_qr++;
 				continue;
 			}
 			/*check if a corner marcer is in the area*/
@@ -216,9 +226,12 @@ int main(int argc,char *argv[]){
 		}
 		spdlog::debug("{} qr codes found",std::to_string(qr_codes.size()));
 		spdlog::debug("{} markers found",std::to_string(markers_sides.size()));
-		if(qr_codes.size() < 4){
-			spdlog::error("couldn't detect nor decode enough qr codes in the input image!");
-			continue;
+		//最悪TLさえ読み取れれば後は補完できる
+		while(qr_codes.size() < 4){
+			handfont::qr_code filler;
+			qr_codes.push_back(filler);
+			//spdlog::error("couldn't detect nor decode enough qr codes in the input image!");
+			//continue;
 		}
 		if(markers_sides.size() < 4){
 			spdlog::error("couldn't detect enough corner markers in the input image!");
@@ -336,11 +349,8 @@ int main(int argc,char *argv[]){
 			metadata = toml::parse(metafile_path.native());
 		}
 		for(const auto& key:{"general","chars","alters"}){
-			try{
-				toml::find(metadata,key);
-			}
-			catch(std::exception){
-				metadata[key] = toml::value();
+			if(metadata.is_uninitialized() || !metadata.contains(key)){
+				metadata[key] = toml::value{{"default",true}};//初期値
 			}
 		}
 		std::ofstream metafile_stream;
@@ -369,7 +379,7 @@ int main(int argc,char *argv[]){
 			if(char_info.width == handfont::char_width::HALF){
 				unified_grid = *internal_grid;
 				internal_grid++;
-				metadata["chars"]["U+"+code_point]["width"] = "HALF";
+				metadata["chars"]["U"+code_point]["width"] = "HALF";
 			}else if(char_info.width == handfont::char_width::FULL){
 				if(std::distance(internal_grids.begin(),internal_grid)%num_internal_cols == num_internal_cols-1){
 					internal_grid++;//端が余ったら飛ばす
