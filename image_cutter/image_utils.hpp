@@ -1,11 +1,5 @@
 #ifndef HANDFONT_IMAGE_UTILS
 #define HANDFONT_IMAGE_UTILS
-#include"qr_codes.hpp"
-#include"points.hpp"
-#include"sides.hpp" //uses template
-#include"corner.hpp"
-#include"write_area.hpp"
-#include<opencv2/core.hpp>
 namespace handfont{
 	template <class K,class V>
 	struct key_value{
