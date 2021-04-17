@@ -270,6 +270,7 @@ int main(int argc,char *argv[]){
 		handfont::write_area write_handler(corners);
 		if(!write_handler.is_valid()){
 			spdlog::error("couldn't decode TL qr code");
+			continue;
 		}
 		spdlog::debug(write_handler.get_TL_data());
 		/*
