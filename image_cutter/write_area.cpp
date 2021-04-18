@@ -58,22 +58,22 @@ namespace handfont{
 	bool write_area::is_valid(){
 		if(!this->TL.code.data.empty() 
 			&& TL.code.data.substr(0,2) == "TL"
-			&& TL.code.data.length()>2
+			&& TL.code.data.length()>3
 			){
 			return true;
 		}else if(!this->TR.code.data.empty() 
 				&& TR.code.data.substr(0,2) == "TR"
-				&& TR.code.data.length()>2
+				&& TR.code.data.length()>3
 				){
 			return true;
 		}else if(!this->BR.code.data.empty() 
 				&& BR.code.data.substr(0,2) == "BR"
-				&& BR.code.data.length()>2
+				&& BR.code.data.length()>3
 				){
 			return true;
 		}else if(!this->BL.code.data.empty() 
 				&& BL.code.data.substr(0,2) == "BL"
-				&& BL.code.data.length()>2
+				&& BL.code.data.length()>3
 				){
 			return true;
 		}else{
@@ -113,9 +113,12 @@ namespace handfont{
 		cv::warpPerspective(src,dest_tmp,transform,dest_tmp.size());
 		return cv::Mat(dest_tmp,cv::Rect(0,0,dest_width,dest_height));
 	}
-#ifndef NDEBUG//デバッグモードで無いわけではない <=> デバッグモード
-		[[nodiscard]] std::vector<corner> write_area::get_corners(){
-			return std::vector<corner>{TL,TR,BR,BL};
+		[[nodiscard]] std::map<std::string,corner> write_area::get_corners(){
+			std::map<std::string,corner> result;
+			result["TL"] = TL;
+			result["TR"] = TR;
+			result["BR"] = BR;
+			result["BL"] = BL;
+			return result;
 		}
-#endif
 }
