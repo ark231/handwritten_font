@@ -22,6 +22,7 @@
 #include"chardef/chardef_convert_consts.hpp"
 #include"read_metadata.hpp"
 namespace handfont{
+	bool is_empty(cv::Mat,double);
 	image_handler::image_handler(stdfsys::path project_dir,stdfsys::path file_rootdir,stdfsys::path image_filepath){
 		this->project_dir=project_dir;
 		this->file_rootdir=file_rootdir;
@@ -294,10 +295,10 @@ namespace handfont{
 		if(stdfsys::exists(metafile_path)){
 			metadata = toml::parse(metafile_path.native());
 		}
-		for(const auto& key:{"general","chars","alters"}){
+		for(const std::string& key:{"general","chars","alters"}){
 			if(metadata.is_uninitialized() || !metadata.contains(key)){
 				metadata[key] = toml::value{{"default",true}};//初期値
-				if(key == "general"){
+				if(key == std::string("general")){
 					metadata["general"]["has_lower_latin"] = false;
 				}
 			}
@@ -322,6 +323,7 @@ namespace handfont{
 		spdlog::debug("{}units/mm",units_per_mm);
 		std::cout<<units_per_mm<<"units/mm"<<std::endl;
 		auto internal_grid = internal_grids.begin();
+		std::vector<toml::value> alters;
 		for(const auto& char_info : chardef.char_infos){
 			if(char_info.g_type == handfont::guide_type::LOWER_LATIN){
 				metadata["general"]["has_lower_latin"] = true;
@@ -368,12 +370,38 @@ namespace handfont{
 			element = cv::getStructuringElement(cv::MORPH_ELLIPSE,cv::Size(10,10));
 			cv::morphologyEx(image_write_grid_closed,image_write_grid_opened,cv::MORPH_OPEN,element);
 			cv::Mat result = image_write_grid_opened;
+			if(is_empty(result,units_per_em)){
+				if(char_info.has_alternative){
+					auto alter_data = char_info.alternative;
+					toml::value alter;
+					auto src_path = alter_data.filemeta.dir_order(project_dir/".cache")/(to_hex(alter_data.character,4,'0')+".png");
+					alter["src"] = src_path.native();
+					alter["dst"] = (cache_dir/(to_hex(char_info.character,4,'0')+".png")).native();
+					alters.push_back(alter);
+				}
+				continue;
+			}
 			/* 
 			 * 代替文字、不使用指定などを検知する処理を後で追加する 
 			 */
 			writeto_file((cache_dir/(handfont::to_hex(char_info.character,4,'0')+".png")),result);
 		}
+		metadata["alters"] = alters;
 		metafile_stream<<std::setw(80)<<metadata;
 		metafile_stream.close();
+	}
+	bool is_empty(cv::Mat image,double dpmm){
+		auto image_rev = ~image;
+		std::vector<std::vector<cv::Point>> contours;
+		std::vector<cv::Vec4i> hierarchy;
+		cv::findContours(image_rev,contours,hierarchy,cv::RETR_TREE,cv::CHAIN_APPROX_SIMPLE);
+		bool is_empty = true;
+		for(const auto&contour : contours){
+			if(cv::contourArea(contour)>0.15*dpmm*0.15*dpmm){
+				is_empty = false;
+				break;
+			}
+		}
+		return is_empty;
 	}
 }
