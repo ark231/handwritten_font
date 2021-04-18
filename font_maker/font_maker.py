@@ -8,8 +8,12 @@ import pathlib
 import re
 import toml
 from logging import getLogger,StreamHandler,DEBUG,Formatter
+from enum import Enum,auto
 
 import svg_utils
+class Font_type(Enum):
+    MONO = auto()
+    PROPORTIONAL = auto()
 def main():
     parser=argparse.ArgumentParser(description="make font from svg files",prog="font_maker")
     #parser.add_argument("width",type=int,help="width of output picture")
@@ -35,20 +39,27 @@ def main():
             result.info.styleName = "small"
             if(re.search("mono",str(cur_path))):
                 result.info.styleName += "-mono"
+                font_type = Font_type.MONO
             elif(re.search("proportional",str(cur_path))):
                 result.info.styleName += "-proportional"
+                font_type = Font_type.PROPORTIONAL
             else:
                 continue
         elif(re.search("large",str(cur_path))):
             result.info.styleName = "large"
             if(re.search("mono",str(cur_path))):
                 result.info.styleName += "-mono"
+                font_type = Font_type.MONO
             elif(re.search("proportional",str(cur_path))):
                 result.info.styleName += "-proportional"
+                font_type = Font_type.PROPORTIONAL
             else:
                 continue
         else:
             continue
+
+        if font_type == Font_type.MONO:
+            result.info.postscriptIsFixedPitch
 
         metadatas = toml.load(dirpath/".metadata.toml")
         UPE = 1024
@@ -80,13 +91,16 @@ def main():
             logger.debug('{code}: "{char}"'.format(code = code_point,char = chr(int(code_point,16))))
             glyph = result.newGlyph("U+"+code_point)
             glyph.unicode = int(code_point,16)
-            if char_width == "HALF":
-                glyph.width = round(UPE/2)
-            elif char_width == "FULL":
-                glyph.width = UPE
+            ex_rate = input_svg.calc_ex_rate(ascender+abs(descender))
+            if font_type == Font_type.MONO:
+                if char_width == "HALF":
+                    glyph.width = round(UPE/2)
+                elif char_width == "FULL":
+                    glyph.width = UPE
+            elif font_type == Font_type.PROPORTIONAL:
+                glyph.width = input_svg.get_width()*ex_rate
             pen = glyph.getPen()
             guide_type = metadatas["chars"]["U"+code_point]["guide_type"]
-            ex_rate = input_svg.calc_ex_rate(glyph.width)
             if guide_type == "cross":
                 svg_data = SVGPath(str(filename),(ex_rate,0,0,ex_rate,0,0))
             else:
