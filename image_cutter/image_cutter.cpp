@@ -20,7 +20,7 @@ int main(int argc,char *argv[]){
 		("help,h","show this help")
 		("chardef_dir,d",bpo::value<std::string>()->default_value(handfont::get_self_dir().parent_path().native()+"/chardefs"),"文字定義ファイルのあるディレクトリ")
 		("project_file,p",bpo::value<std::string>(),"プロジェクトファイル")
-		("dpi,i",bpo::value<handfont::dpi>(),"入力画像のスケール")
+		//("dpi,i",bpo::value<handfont::dpi>(),"入力画像のスケール")
 		("debug,b","デバッグ用出力を有効化する");
 		//for experiment
 		//("block_size,s",bpo::value<int>(),"size of binarize block")
