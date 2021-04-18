@@ -297,6 +297,9 @@ namespace handfont{
 		for(const auto& key:{"general","chars","alters"}){
 			if(metadata.is_uninitialized() || !metadata.contains(key)){
 				metadata[key] = toml::value{{"default",true}};//初期値
+				if(key == "general"){
+					metadata["general"]["has_lower_latin"] = false;
+				}
 			}
 		}
 		std::ofstream metafile_stream;
@@ -320,6 +323,9 @@ namespace handfont{
 		std::cout<<units_per_mm<<"units/mm"<<std::endl;
 		auto internal_grid = internal_grids.begin();
 		for(const auto& char_info : chardef.char_infos){
+			if(char_info.g_type == handfont::guide_type::LOWER_LATIN){
+				metadata["general"]["has_lower_latin"] = true;
+			}
 			cv::Rect unified_grid;
 			auto code_point = "U"+handfont::to_hex(char_info.character,4,'0');
 			if(char_info.width == handfont::char_width::HALF){
