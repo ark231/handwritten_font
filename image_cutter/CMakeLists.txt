@@ -52,6 +52,7 @@ target_compile_options(read_image_metadata PUBLIC -Wall -Wextra )
 
 add_executable(image_cutter 
 	image_cutter.cpp 
+	image_handler.cpp
 	image_utils.cpp 
 	corner.cpp 
 	points.cpp 
