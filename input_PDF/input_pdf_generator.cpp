@@ -235,6 +235,13 @@ namespace handfont{
 		//px constexpr qr_size_TL=mm_to_px(40.0);
 		px qr_size = mm_to_px((mm)HPDF_Image_GetWidth(qr_codes["BR"]));
 		px qr_size_TL = mm_to_px((mm)HPDF_Image_GetWidth(qr_codes["TL"]));
+		px constexpr qr_max_size = mm_to_px(30);
+		if(qr_size>qr_max_size){
+			qr_size = qr_max_size;
+		}
+		if(qr_size_TL>qr_max_size){
+			qr_size_TL = qr_max_size;
+		}
 		px page_width = HPDF_Page_GetWidth(current_page);
 		px page_height= HPDF_Page_GetHeight(current_page);
 		
