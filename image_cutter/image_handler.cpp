@@ -28,6 +28,7 @@ namespace handfont{
 		this->file_rootdir=file_rootdir;
 		path_image = image_filepath;
 		if(stdfsys::exists(image_filepath.replace_extension(".toml"))){
+			spdlog::info("error file found");
 			this->has_data_file = true;
 			error_filedata = toml::parse(image_filepath.replace_extension(".toml"));
 			auto general_data = toml::find(error_filedata,"general");
@@ -378,6 +379,7 @@ namespace handfont{
 					alter["src"] = src_path.native();
 					alter["dst"] = (cache_dir/(to_hex(char_info.character,4,'0')+".png")).native();
 					alters.push_back(alter);
+					spdlog::info("{}: alternative found",to_hex(char_info.character,4,'0'));
 				}
 				continue;
 			}
