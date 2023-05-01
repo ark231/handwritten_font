@@ -40,3 +40,4 @@
 cpp_exiftool
 
 compile_commands.json
+.cache/

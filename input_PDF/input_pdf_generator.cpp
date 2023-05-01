@@ -99,7 +99,7 @@ mm input_pdf_generator::draw_write_grid(grid_size size, char_width width, guide_
             HPDF_Page_Stroke(current_page);
             break;
         case guide_type::CROSS:
-            HPDF_UINT16 dash_tmp[] = {3};
+            HPDF_REAL dash_tmp[] = {3};
             HPDF_Page_SetDash(current_page, dash_tmp, 1, 1);
             HPDF_Page_MoveTo(current_page, BL_x, BL_y + (grid_height / 2.0));
             HPDF_Page_LineTo(current_page, BL_x + grid_width, BL_y + (grid_height / 2.0));

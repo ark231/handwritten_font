@@ -4,7 +4,10 @@
 #include <opencv2/core.hpp>
 #include <toml.hpp>
 
-#include "image_includes.hpp"
+#include "points.hpp"
+#include "qr_codes.hpp"
+#include "sides.hpp"
+#include "write_area.hpp"
 namespace stdfsys = std::filesystem;
 namespace handfont {
 class image_handler {

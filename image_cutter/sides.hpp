@@ -1,5 +1,7 @@
 #ifndef HANDFONT_IMAGE_SIDES
 #define HANDFONT_IMAGE_SIDES
+#include <cmath>
+#include <stdexcept>
 namespace handfont {
 template <class P>
 struct side {

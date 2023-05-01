@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "general/helpers.hpp"
-#include "image_includes.hpp"
+#include "image_handler.hpp"
 namespace bpo = boost::program_options;
 namespace stdfsys = std::filesystem;
 
@@ -61,7 +61,8 @@ int main(int argc, char* argv[]) {
     auto sigma_space = varmap["sigma_space"].as<int>();
     */
 
-    auto project_dir = project_filepath.parent_path();  // 画像の場所とかの相対パスの起点は、プロジェクトファイルの場所！
+    auto project_dir =
+        project_filepath.parent_path();  // 画像の場所とかの相対パスの起点は、プロジェクトファイルの場所！
     for (const auto& filepath : stdfsys::directory_iterator(project_dir / "input")) {
         handfont::image_handler image(project_dir, file_rootdir, filepath.path());
         image.process();

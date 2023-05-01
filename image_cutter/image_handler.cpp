@@ -160,7 +160,7 @@ void image_handler::writeto_file(stdfsys::path outfilepath, cv::Mat image) {
     try {
         cv::imwrite(outfilepath.native(), image);
     } catch (cv::Exception excep) {
-        spdlog::error("couldn't write image to " + outfilepath.native() + "\n{}", excep.what());
+        spdlog::error("couldn't write image to {}\n{}", outfilepath.native(), excep.what());
         std::exit(EXIT_FAILURE);
     }
     spdlog::info("successfully written into " + outfilepath.native());
