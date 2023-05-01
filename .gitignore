@@ -38,3 +38,5 @@
 *tmp*
 /*tmp*/
 cpp_exiftool
+
+compile_commands.json
