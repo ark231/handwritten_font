@@ -13,6 +13,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect.hpp>
 #include <regex>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -244,10 +245,26 @@ void image_handler::process() {
     spdlog::debug(write_handler.get_TL_data());
     auto image_write_area = write_handler.centerize_image(image_blue);
     spdlog::info("start cutting off characters");
-    std::smatch match_filecode;
+
     auto TL_data = write_handler.get_TL_data();
+
+    auto stx_idx = TL_data.find_first_of('\2');
+    auto etx_idx = TL_data.find_first_of('\3');
+    auto chardefset_id = TL_data.substr(stx_idx + 1, etx_idx - stx_idx - 1);
+    // cut off chardefset id as it can be literally anything, including /[SL][MP]_[0-9]+/.
+    TL_data = TL_data.substr(0, stx_idx) + TL_data.substr(etx_idx + 1);
+    std::smatch match_chardefset_version;
+    std::regex_search(TL_data, match_chardefset_version, std::regex("v[0-9]+"));
+    std::stringstream stream;
+    stream << match_chardefset_version.str();
+    int chardefset_version;
+    stream >> chardefset_version;
+
+    spdlog::info(R"(chardefset "{}"v{} is used)", chardefset_id, chardefset_version);
+    std::smatch match_filecode;
     std::regex_search(TL_data, match_filecode, std::regex("[SL][MP]_[0-9]+"));
-    handfont::chardef_filemeta filemeta(match_filecode.str(), file_rootdir);
+    handfont::chardef_filemeta filemeta(
+        match_filecode.str(), handfont::ChardefDirmeta::from_id({file_rootdir}, chardefset_id, chardefset_version));
     handfont::chardef_data chardef;
     chardef.parse_chardef(filemeta);
     int num_internal_cols;

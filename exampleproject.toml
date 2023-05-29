@@ -1,11 +1,15 @@
 fontname = "exsamplefont" #using less than 21 letters is recommended. Above that, the TL qr-code will get too big
-fonttype = "both" #or "mono" ,"proportional"
-gridsize = "small" #or "large", "both"
+fonttype = "both"         #or "mono" ,"proportional"
+gridsize = "small"        #or "large", "both"
+[chardefset] #if omitted, standard v0 is used
+id = "standard"
+version = 0
+
 [chardefs.small.mono] # chardefs.type.size all of that is always neccesary
 set = "all" # use all chardef file in chardef directory
 [chardefs.small.proportional]
 set = "custom"
-[[chardefs.small.proportional.id_groups]] 
+[[chardefs.small.proportional.id_groups]]
 begin = 0x0001
 end = 0x0002
 #single-file-range is expressed by setting the same value in begin and end

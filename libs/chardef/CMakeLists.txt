@@ -1,10 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
 project(handfont_chardef_libs CXX)
+
 add_library(parse_chardef SHARED parse_chardef.cpp)
 target_compile_features(parse_chardef PUBLIC cxx_std_17)
 target_compile_options(parse_chardef PUBLIC -Wall -Wextra)
+
 add_library(chardef_filemeta SHARED chardef_filemeta.cpp)
 target_compile_features(chardef_filemeta PUBLIC cxx_std_17)
 target_compile_options(chardef_filemeta PUBLIC -Wall -Wextra)
 target_include_directories(chardef_filemeta PUBLIC ${handfont_libs_SOURCE_DIR})
+
+add_library(chardef_dirmeta SHARED chardef_dirmeta.cpp)
+target_compile_features(chardef_dirmeta PUBLIC cxx_std_17)
+target_compile_options(chardef_dirmeta PUBLIC -Wall -Wextra)
+target_include_directories(chardef_dirmeta PUBLIC ${handfont_libs_SOURCE_DIR})
+target_link_libraries(chardef_dirmeta PUBLIC toml11)
+
 add_library(chardef_cvt_consts SHARED chardef_convert_consts.cpp)

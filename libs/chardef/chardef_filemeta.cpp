@@ -35,14 +35,14 @@ std::vector<int> search_available_files(std::string rootdir, std::string size, s
     return search_available_files(rootdir, to_grid_size(size), to_font_type(type));
 }
 
-void chardef_filemeta::set_metadatas(grid_size size, font_type type, UInt id, std::string rootdir) {
-    this->size = size;
-    this->type = type;
-    this->file_id = id;
-    this->rootdir = rootdir;
+void chardef_filemeta::set_metadatas_(grid_size size, font_type type, UInt id, ChardefDirmeta rootdir) {
+    this->size_ = size;
+    this->type_ = type;
+    this->file_id_ = id;
+    this->rootdir_ = rootdir;
 }
 
-void chardef_filemeta::set_metadatas(filecode code, std::string rootdir) {
+void chardef_filemeta::set_metadatas(FileCode code, ChardefDirmeta rootdir) {
     grid_size size_tmp;
     font_type type_tmp;
     UInt id_tmp;
@@ -69,32 +69,28 @@ void chardef_filemeta::set_metadatas(filecode code, std::string rootdir) {
             break;
     }
     id_tmp = std::stoi(code.substr(3), nullptr, 16);
-    set_metadatas(size_tmp, type_tmp, id_tmp, rootdir);
+    set_metadatas_(size_tmp, type_tmp, id_tmp, rootdir);
 }
 
 chardef_filemeta::chardef_filemeta() {}
 
-chardef_filemeta::chardef_filemeta(filecode code, std::string rootdir) { set_metadatas(code, rootdir); }
+chardef_filemeta::chardef_filemeta(FileCode code, ChardefDirmeta rootdir) { set_metadatas(code, rootdir); }
 
-chardef_filemeta::chardef_filemeta(grid_size size, font_type type, UInt id, std::string rootdir) {
-    set_metadatas(size, type, id, rootdir);
+chardef_filemeta::chardef_filemeta(grid_size size, font_type type, UInt id, ChardefDirmeta rootdir) {
+    set_metadatas_(size, type, id, rootdir);
 }
 
-std::string chardef_filemeta::get_path() {
-    /*
-    std::stringstream filename;
-    filename<<std::setw(4)<<std::setfill('0')<<std::hex<<file_id;
-    */
-    auto filename_path = stdfsys::path(to_hex(file_id, 4, '0') + ".cdef");
-    stdfsys::path result = chardef_dirorder(this->rootdir, this->size, this->type) / filename_path;
+std::string chardef_filemeta::path() {
+    auto filename_path = stdfsys::path(to_hex(file_id_, 4, '0') + ".cdef");
+    stdfsys::path result = chardef_dirorder(this->rootdir_.path(), this->size_, this->type_) / filename_path;
     return result.native();
 }
 
-std::string chardef_filemeta::get_rootdir() { return rootdir; }
+ChardefDirmeta chardef_filemeta::rootdir() { return rootdir_; }
 
-filecode chardef_filemeta::get_filecode() {
-    filecode result = "";
-    switch (this->size) {
+FileCode chardef_filemeta::get_filecode() {
+    FileCode result = "";
+    switch (this->size_) {
         case grid_size::SMALL:
             result += "S";
             break;
@@ -102,7 +98,7 @@ filecode chardef_filemeta::get_filecode() {
             result += "L";
             break;
     }
-    switch (this->type) {
+    switch (this->type_) {
         case font_type::MONO:
             result += "M";
             break;
@@ -111,11 +107,11 @@ filecode chardef_filemeta::get_filecode() {
             break;
     }
     std::stringstream code_file_id;
-    code_file_id << std::setw(4) << std::setfill('0') << std::hex << file_id;
+    code_file_id << std::setw(4) << std::setfill('0') << std::hex << file_id_;
     result += "_" + code_file_id.str();
     return result;
 }
 stdfsys::path chardef_filemeta::dir_order(std::string rootdir) {
-    return chardef_dirorder(rootdir, this->size, this->type);
+    return chardef_dirorder(rootdir, this->size_, this->type_);
 }
 }  // namespace handfont

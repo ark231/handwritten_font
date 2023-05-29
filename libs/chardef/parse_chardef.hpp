@@ -8,7 +8,7 @@ namespace handfont {
 struct other_char {
     chardef_filemeta filemeta;
     Unicode character;
-    void set_all(Unicode, filecode, std::string);
+    void set_all(Unicode, FileCode, ChardefDirmeta);
 };
 struct character_info {
     Unicode character;

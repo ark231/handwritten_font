@@ -29,14 +29,19 @@ add_executable(
     qr_codes.cpp
     write_area.cpp
     sides.cpp)
-target_include_directories(image_cutter PUBLIC ${Boost_INCLUDE_DIR})
-target_include_directories(image_cutter PUBLIC ${handfont_libs_SOURCE_DIR})
-target_include_directories(image_cutter PUBLIC ${OpenCV_INCLUDE_DIR})
+target_include_directories(image_cutter PUBLIC ${Boost_INCLUDE_DIR} ${handfont_libs_SOURCE_DIR} ${OpenCV_INCLUDE_DIR})
 target_link_libraries(image_cutter LINK_PUBLIC ${Boost_LIBRARIES})
-target_link_libraries(image_cutter PUBLIC parse_chardef chardef_filemeta chardef_cvt_consts helpers read_image_metadata)
-target_link_libraries(image_cutter PUBLIC ${OpenCV_LIBRARIES})
-target_link_libraries(image_cutter PUBLIC ${spdlog_LIBRARIES})
-target_link_libraries(image_cutter PUBLIC toml11)
+target_link_libraries(
+    image_cutter
+    PUBLIC parse_chardef
+           chardef_filemeta
+           chardef_dirmeta
+           chardef_cvt_consts
+           helpers
+           read_image_metadata
+           ${OpenCV_LIBRARIES}
+           ${spdlog_LIBRARIES}
+           toml11)
 target_compile_options(image_cutter PUBLIC $<IF:$<CONFIG:Debug>,-g3 -O0,>)
 target_compile_options(image_cutter PUBLIC -Wall -Wextra)
 target_compile_features(image_cutter PUBLIC cxx_std_20)

@@ -23,7 +23,8 @@ stdfsys::path get_self_dir() {
 #if defined(__linux__)
     result = stdfsys::read_symlink(stdfsys::path("/proc/self/exe")).parent_path();
 #elif defined(_Windows)  // not tested
-    char selfpath[MAX_PATH + 1] result = stdfsys::path(GetModuleFileName(nullptr, selfpath, MAX_PATH)).parent_path();
+    char selfpath[MAX_PATH + 1];
+    result = stdfsys::path(GetModuleFileName(nullptr, selfpath, MAX_PATH)).parent_path();
 #endif
     return result;
 }

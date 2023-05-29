@@ -5,26 +5,27 @@
 #include <vector>
 
 #include "chardef_consts.hpp"
+#include "chardef_dirmeta.hpp"
 namespace stdfsys = std::filesystem;
 namespace handfont {
 std::vector<int> search_available_files(std::string, grid_size, font_type);
 std::vector<int> search_available_files(std::string, std::string, std::string);
 class chardef_filemeta {
-    grid_size size;
-    font_type type;
-    UInt file_id;
-    std::string rootdir;
+    grid_size size_;
+    font_type type_;
+    UInt file_id_;
+    ChardefDirmeta rootdir_;
     // filecode code;
-    void set_metadatas(grid_size, font_type, UInt, std::string);
+    void set_metadatas_(grid_size, font_type, UInt, ChardefDirmeta);
 
    public:
-    chardef_filemeta(filecode, std::string);
-    chardef_filemeta(grid_size, font_type, UInt, std::string);
+    chardef_filemeta(FileCode, ChardefDirmeta);
+    chardef_filemeta(grid_size, font_type, UInt, ChardefDirmeta);
     chardef_filemeta();
-    void set_metadatas(filecode, std::string);
-    std::string get_path();
-    std::string get_rootdir();
-    filecode get_filecode();
+    void set_metadatas(FileCode, ChardefDirmeta);
+    std::string path();
+    ChardefDirmeta rootdir();
+    FileCode get_filecode();
     stdfsys::path dir_order(std::string);
 };
 }  // namespace handfont

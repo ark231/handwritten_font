@@ -11,6 +11,7 @@ find_package(
     ICU 61.0
     COMPONENTS uc
     REQUIRED)
+find_package(fmt REQUIRED)
 
 add_executable(gen_input_pdf generator.cpp input_pdf_generator.cpp)
 target_include_directories(gen_input_pdf PUBLIC ${Boost_INCLUDE_DIR})
@@ -18,11 +19,18 @@ target_include_directories(gen_input_pdf PUBLIC ${Boost_INCLUDE_DIR})
 # target_include_directories(gen_input_pdf PUBLIC ${handfont_general_libs_SOURCE_DIR})
 target_include_directories(gen_input_pdf PUBLIC ${handfont_libs_SOURCE_DIR})
 target_link_libraries(gen_input_pdf LINK_PUBLIC ${Boost_LIBRARIES})
-target_link_libraries(gen_input_pdf PUBLIC parse_chardef chardef_filemeta chardef_cvt_consts helpers)
-target_link_libraries(gen_input_pdf PUBLIC ${QRencode_LINK_LIBRARIES})
-target_link_libraries(gen_input_pdf PUBLIC ${HPDF})
-target_link_libraries(gen_input_pdf PUBLIC ${ICU_LIBRARIES})
-target_link_libraries(gen_input_pdf PUBLIC toml11)
+target_link_libraries(
+    gen_input_pdf
+    PUBLIC parse_chardef
+           chardef_filemeta
+           chardef_dirmeta
+           chardef_cvt_consts
+           helpers
+           ${QRencode_LINK_LIBRARIES}
+           ${HPDF}
+           ${ICU_LIBRARIES}
+           toml11
+           fmt)
 target_compile_options(gen_input_pdf PUBLIC $<IF:$<CONFIG:Debug>,-g3 -O0,>)
 target_compile_options(gen_input_pdf PUBLIC -Wall -Wextra)
 target_link_options(gen_input_pdf PUBLIC -rdynamic)

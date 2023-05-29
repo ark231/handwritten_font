@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "chardef/chardef_dirmeta.hpp"
 #include "chardef/parse_chardef.hpp"
 #include "input_pdf_consts.hpp"
 namespace handfont {

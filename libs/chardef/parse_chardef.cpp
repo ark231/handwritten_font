@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <string>
 namespace handfont {
-void other_char::set_all(Unicode character, filecode code, std::string rootdir) {
+void other_char::set_all(Unicode character, FileCode code, ChardefDirmeta rootdir) {
     filemeta = chardef_filemeta(code, rootdir);
     this->character = character;
 }
@@ -27,9 +27,9 @@ std::vector<std::string> parse_list(std::string input) {
     return result;
 }
 void chardef_data::parse_chardef(chardef_filemeta input_filemeta) {
-    auto chardef_file = std::ifstream(input_filemeta.get_path());
+    auto chardef_file = std::ifstream(input_filemeta.path());
     if (chardef_file.fail()) {
-        throw std::runtime_error("error: could not open chardef file: " + input_filemeta.get_path());
+        throw std::runtime_error("error: could not open chardef file: " + input_filemeta.path());
     }
     is_Fixed_Base = false;  // initialization and default value
     std::string line;
@@ -113,7 +113,7 @@ void chardef_data::parse_chardef(chardef_filemeta input_filemeta) {
                     int second_underline = raw_data.find("_", first_underline + 1);
                     std::string filecode = raw_data.substr(0, second_underline);
                     Unicode alt_char_tmp = (Unicode)std::stoi(raw_data.substr(second_underline + 2), nullptr, 16);
-                    alt_tmp.set_all(alt_char_tmp, filecode, input_filemeta.get_rootdir());
+                    alt_tmp.set_all(alt_char_tmp, filecode, input_filemeta.rootdir());
                     char_tmp.alternative = alt_tmp;
                 }
             }

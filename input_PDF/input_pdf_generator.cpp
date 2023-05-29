@@ -2,6 +2,7 @@
 
 #include <cxxabi.h>
 #include <execinfo.h>
+#include <fmt/core.h>
 #include <qrencode.h>
 #include <unicode/unistr.h>
 
@@ -232,10 +233,12 @@ void input_pdf_generator::add_page(chardef_filemeta filemeta) {
     HPDF_Page_SetSize(current_page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
     chardef_data data;
     data.parse_chardef(filemeta);
-    std::string qr_info_tmp = "_Handfont_" + filemeta.get_filecode() + "_" + font_name;
     std::string qr_places[] = {"TL", "TR", "BL", "BR"};
     for (const auto& qr_place : qr_places) {
-        qr_codes[qr_place] = generate_qr_code((qr_place + qr_info_tmp).c_str());
+        qr_codes[qr_place] =
+            generate_qr_code((fmt::format("{}_Handfont_\2{}\3_v{}_{}_{}", qr_place, filemeta.rootdir().id(),
+                                          filemeta.rootdir().version(), filemeta.get_filecode(), font_name))
+                                 .c_str());
     }
     px constexpr qr_offset = mm_to_px(5.0);
     // px constexpr qr_size=mm_to_px(20.0);
@@ -261,11 +264,9 @@ void input_pdf_generator::add_page(chardef_filemeta filemeta) {
 
     for (int i = 0; i < data.required_fontnames.size(); i++) {
         if (using_fonts.find(data.required_fontnames[i]) == using_fonts.end()) {
-            stdfsys::path fontfilepath =
-                stdfsys::path(filemeta.get_rootdir()).parent_path() / "datas" / (data.required_fontnames[i] + ".ttf");
-            // std::string fontfilename="../../datas/"+data.required_fontnames[i]+".ttf";
+            stdfsys::path fontfilepath = stdfsys::path(filemeta.rootdir().path()).parent_path().parent_path() /
+                                         "datas" / (data.required_fontnames[i] + ".ttf");
             auto font_name = HPDF_LoadTTFontFromFile(pdf, fontfilepath.native().c_str(), HPDF_TRUE);
-            // auto font_name = HPDF_LoadTTFontFromFile(pdf,fontfilename.c_str(),HPDF_FALSE);//failed (tofu!)
             using_fonts[data.required_fontnames[i]] = HPDF_GetFont(pdf, font_name, "UTF-8");
         }
     }
